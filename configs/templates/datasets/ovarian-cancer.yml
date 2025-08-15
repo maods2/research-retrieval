@@ -1,0 +1,39 @@
+data:
+  dataset_type: FewShotFolderDataset
+  train_dir: datasets/final/ovarian-cancer-splitted/train
+  test_dir: datasets/final/ovarian-cancer-splitted/test
+  class_mapping: {Clear_Cell: 0, Endometri: 1, Mucinous: 2, Non_Cancerous: 3, Serous: 4}
+  batch_size: 1
+  batch_size_test: 1
+  num_workers: 3  # Number of workers to load the data
+  suffle_train: true  # Shuffle the training data
+  suffle_test: false
+
+transform:
+  train:
+    resize: [224, 224]
+    horizontal_flip: true
+    color_jitter:
+      brightness: 0.4
+      contrast: 0.4
+      saturation: 0.4
+      hue: 0.1
+      probability: 0.4
+      gaussian_noise:
+        var_limit: [5.0, 30.0]
+        mean: 0.0
+        probability: 0.4
+      gaussian_blur:
+        blur_limit: [3, 7]
+        probability: 0.4
+    random_grayscale: 0.2
+    normalize:
+      mean: [0.485, 0.456, 0.406]
+      std: [0.229, 0.224, 0.225]
+    to_tensor: true
+  test:
+    resize: [224, 224]
+    normalize:
+      mean: [0.485, 0.456, 0.406]
+      std: [0.229, 0.224, 0.225]
+    to_tensor: true

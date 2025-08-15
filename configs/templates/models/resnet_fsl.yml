@@ -1,0 +1,13 @@
+model:
+  model_name: <model_name>
+  arch_name: <arch_name>
+  freeze_params: true
+  encoder_dim: 2048
+  decoder_channels: 2048
+  experiment_name: <model_name>_<dataset_name>
+  pretrained: true
+  load_checkpoint: false
+  checkpoint_path: ''
+  n_way: 5        # Number of classes per episode
+  k_shot: 5       # Number of support examples per class
+  q_queries: 6    # Number of query examples per class

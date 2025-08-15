@@ -1,0 +1,1 @@
+FROM maods/cuda-12.6.3-devel-ubuntu22.04-pytorch:latest
