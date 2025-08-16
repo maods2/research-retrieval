@@ -7,20 +7,21 @@ sys.path.append(
 )
 
 
-from src.models.autoencoder import Autoencoder
-from src.models.clip import CLIP
 from src.models.dino import DINO
 from src.models.dino import DINOv2
-from src.models.fsl_models import DINOv2Fsl, DinoFsl, PhikonFsl, ResNetFsl, UNIFsl, ViTFsl, Virchow2Fsl, WrappedFsl
+from src.models.fsl_models import DinoFsl
+from src.models.fsl_models import DINOv2Fsl
+from src.models.fsl_models import PhikonFsl
+from src.models.fsl_models import ResNetFsl
+from src.models.fsl_models import UNIFsl
+from src.models.fsl_models import Virchow2Fsl
+from src.models.fsl_models import ViTFsl
 from src.models.phikon import Phikon
 from src.models.resnet import ResNet
-
 from src.models.uni import UNI
 from src.models.virchow2 import Virchow2
-
 from src.models.vit import ViT
 from src.utils.checkpoint_utils import load_checkpoint
-
 
 
 def get_model(model_config):
@@ -28,15 +29,12 @@ def get_model(model_config):
 
     if model_name == 'resnet':
         model = ResNet(model_config)
-        
+
     elif model_name == 'dino':
         model = DINO(model_name=model_config['model_name'])
 
     elif model_name == 'dinov2':
         model = DINOv2(model_name=model_config['model_name'])
-
-    elif model_name == 'clip':
-        model = CLIP(model_name=model_config['model_name'])
 
     elif model_name == 'vit':
         model = ViT(model_name=model_config['model_name'])
@@ -60,7 +58,7 @@ def get_model(model_config):
 
     elif model_name == 'resnet_fsl':   # Pathology Foundation Model
         model = ResNetFsl(model_config)
-        
+
     elif model_name == 'dino_fsl':
         model = DinoFsl(model_config)
 
@@ -88,8 +86,6 @@ def get_model(model_config):
         # Phikon-v2 is a variant of Phikon, so we can use the same class,
         # but we need to ensure the model_config is correctly set
         model = PhikonFsl(model_config)
-
-
 
     else:
         raise ValueError(f'Model {model_name} is not supported')

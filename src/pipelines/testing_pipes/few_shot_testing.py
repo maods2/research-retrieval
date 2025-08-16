@@ -1,5 +1,5 @@
-from core.base_pipeline import BasePipeline
-from core.metric_base import MetricLoggerBase
+from core.base_evaluator import BaseEvaluator
+from core.base_metric import MetricLoggerBase
 from dataloaders.dataset_fewshot import SupportSetDataset
 from pipelines.training_pipes.few_shot_train import FewShotTrain
 from torch.utils.data import DataLoader
@@ -7,23 +7,7 @@ from torch.utils.data import DataLoader
 import torch
 
 
-class FSLTestingPipeline(BasePipeline):
-    def __init__(
-        self,
-        model,
-        train_loader,
-        test_loader,
-        config,
-        logger,
-        metric_logger: MetricLoggerBase,
-    ):
-        self.model = model
-        self.train_loader = train_loader
-        self.test_loader = test_loader
-        self.config = config
-        self.logger = logger
-        self.metric_logger = metric_logger
-
+class FSLTestingPipeline(BaseEvaluator):
     @staticmethod
     def load_support_set_from_loader(config, device='cpu'):
         """
@@ -52,17 +36,18 @@ class FSLTestingPipeline(BasePipeline):
         support_labels = torch.cat(all_labels, dim=0).to(device)
         return support_set, support_labels
 
-    def test(self):
+    def test(
+        self,
+        model,
+        train_loader,
+        test_loader,
+        config,
+        logger,
+        metric_logger: MetricLoggerBase,
+    ):
         """
         Run metrics on the test data and log the results.
         """
-        config = self.config
-        logger = self.logger
-        metric_logger = self.metric_logger
-        model = self.model
-        train_loader = self.train_loader
-        test_loader = self.test_loader
-
         device = (
             config['device']
             if config.get('device')
@@ -90,4 +75,3 @@ class FSLTestingPipeline(BasePipeline):
         results = {'train': train_val, 'test': test_val}
         logger.info(f'Results for fsl classification: {results}')
         metric_logger.log_metrics(results)
-        return results

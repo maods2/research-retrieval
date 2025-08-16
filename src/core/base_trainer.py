@@ -1,6 +1,6 @@
 from abc import ABC
 from abc import abstractmethod
-from core.metric_base import MetricLoggerBase
+from core.base_metric import MetricLoggerBase
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 from typing import Any

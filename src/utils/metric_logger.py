@@ -8,7 +8,7 @@ sys.path.append(
     )
 )
 
-from core.metric_base import MetricLoggerBase
+from core.base_metric_logger import BaseMetricLogger
 from datetime import datetime
 from typing import Dict
 from typing import Optional
@@ -18,7 +18,7 @@ import json
 import mlflow
 
 
-class MLFlowMetricLogger(MetricLoggerBase):
+class MLFlowMetricLogger(BaseMetricLogger):
     def __init__(self, config: Dict):
         self.model_name = config.get('model', {}).get('name', 'default_model')
         self.experiment_name = config.get('model', {}).get(

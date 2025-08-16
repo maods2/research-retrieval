@@ -1,7 +1,6 @@
 from dataloaders.dataset import StandardImageDataset
 from dataloaders.dataset_contrastive import ContrastiveDataset
 from dataloaders.dataset_fewshot import FewShotFolderDataset
-from dataloaders.dataset_terumo import TerumoImageDataset
 from dataloaders.dataset_triplet import MixedTripletDataset
 from dataloaders.dataset_triplet import TripletDataset
 from torch.utils.data import DataLoader
@@ -23,14 +22,12 @@ def get_dataloader(config, transform_train, transforms_test):
     data_config = config['data']  # Extract data config from the main config
     # Get transformations based on config
     dataset_name = data_config.get(
-        'dataset_type', 'TerumoImageDataset'
+        'dataset_type', 'StandardImageDataset'
     )  # Default to TerumoImageDataset
 
     # Select dataset class dynamically based on config
     if dataset_name == 'StandardImageDataset':
         dataset_class = StandardImageDataset
-    elif dataset_name == 'TerumoImageDataset':
-        dataset_class = TerumoImageDataset
     elif dataset_name == 'TripletDataset':
         dataset_class = TripletDataset
     elif dataset_name == 'MixedTripletDataset':

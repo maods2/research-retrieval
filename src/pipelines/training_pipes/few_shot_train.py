@@ -1,5 +1,5 @@
+from core.base_metric_logger import BaseMetricLogger
 from core.base_trainer import BaseTrainer
-from core.metric_base import MetricLoggerBase
 from torch.nn import functional as F
 from torch.utils.data import DataLoader
 from tqdm import tqdm
@@ -139,7 +139,7 @@ class FewShotTrain(BaseTrainer):
         test_loader,
         config,
         logger,
-        metric_logger: MetricLoggerBase,
+        metric_logger: BaseMetricLogger,
     ):
         device = config.get(
             'device', 'cuda' if torch.cuda.is_available() else 'cpu'

@@ -63,6 +63,7 @@ class ResNet50(nn.Module):
         x = self.backbone(x)
         return x
 
+
 class ResNet(nn.Module):
     def __init__(self, model_config):
         super(ResNet, self).__init__()
@@ -74,10 +75,11 @@ class ResNet(nn.Module):
         elif model_name == 'resnet50':
             self.model = ResNet50(model_config)
         else:
-            raise ValueError(f"Unknown model_name: {model_name}")
+            raise ValueError(f'Unknown model_name: {model_name}')
 
     def forward(self, x):
         return self.model(x)
+
 
 if __name__ == '__main__':
     x = torch.randn(1, 3, 224, 224)  # Example input tensor

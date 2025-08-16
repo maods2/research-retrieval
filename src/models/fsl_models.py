@@ -4,7 +4,8 @@ https://github.com/mahmoodlab/UNI
 https://www.nature.com/articles/s41591-024-02857-3.epdf?sharing_token=CzM2TCW_6hilYJ6BCMgx5dRgN0jAjWel9jnR3ZoTv0PwDLGHgijc_t52lQyxVvw552KDCUhMbS4KuO_rvLnP6S1BpmIj9puojkF8lfR5R8uEX08B0FxePgIH0t7DovKvZF4NHQKlq4TZHGAA1wEIdkYKvcr8nUsaa-nNYbNw3JI%3D
 """
 
-from src.models.dino import DINO, DINOv2
+from src.models.dino import DINO
+from src.models.dino import DINOv2
 from src.models.phikon import Phikon
 from src.models.resnet import ResNet
 from src.models.uni import UNI
@@ -39,7 +40,7 @@ class WrappedFsl(nn.Module):
         # Freeze backbone if needed
         for param in self.backbone.parameters():
             param.requires_grad = False
-            
+
     def compute_prototypes(
         self, embeddings: torch.Tensor, labels: torch.Tensor
     ) -> torch.Tensor:
@@ -90,6 +91,7 @@ class WrappedFsl(nn.Module):
         x = self.projection(x)
         return x
 
+
 class ResNetFsl(WrappedFsl):
     def __init__(self, model_config):
         super().__init__(
@@ -97,6 +99,7 @@ class ResNetFsl(WrappedFsl):
             hidden_dim=model_config.get('hidden_dim', 512),
             embedding_dim=model_config.get('embedding_dim', 128),
         )
+
 
 class DinoFsl(WrappedFsl):
     def __init__(self, model_config):
@@ -106,6 +109,7 @@ class DinoFsl(WrappedFsl):
             embedding_dim=model_config.get('embedding_dim', 128),
         )
 
+
 class DINOv2Fsl(WrappedFsl):
     def __init__(self, model_config):
         super().__init__(
@@ -113,6 +117,7 @@ class DINOv2Fsl(WrappedFsl):
             hidden_dim=model_config.get('hidden_dim', 512),
             embedding_dim=model_config.get('embedding_dim', 128),
         )
+
 
 class ViTFsl(WrappedFsl):
     def __init__(self, model_config):
@@ -122,6 +127,7 @@ class ViTFsl(WrappedFsl):
             embedding_dim=model_config.get('embedding_dim', 128),
         )
 
+
 class UNIFsl(WrappedFsl):
     def __init__(self, model_config):
         super().__init__(
@@ -130,14 +136,16 @@ class UNIFsl(WrappedFsl):
             embedding_dim=model_config.get('embedding_dim', 128),
         )
 
+
 class Virchow2Fsl(WrappedFsl):
     def __init__(self, model_config):
         super().__init__(
-             Virchow2(model_name=model_config['model_name']),
+            Virchow2(model_name=model_config['model_name']),
             hidden_dim=model_config.get('hidden_dim', 512),
             embedding_dim=model_config.get('embedding_dim', 128),
         )
-        
+
+
 class PhikonFsl(WrappedFsl):
     def __init__(self, model_config):
         super().__init__(
@@ -146,8 +154,7 @@ class PhikonFsl(WrappedFsl):
             embedding_dim=model_config.get('embedding_dim', 128),
         )
 
-   
-        
+
 if __name__ == '__main__':
     model = UNIFsl()
     model = model.to('cuda')
