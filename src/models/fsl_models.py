@@ -4,6 +4,12 @@ https://github.com/mahmoodlab/UNI
 https://www.nature.com/articles/s41591-024-02857-3.epdf?sharing_token=CzM2TCW_6hilYJ6BCMgx5dRgN0jAjWel9jnR3ZoTv0PwDLGHgijc_t52lQyxVvw552KDCUhMbS4KuO_rvLnP6S1BpmIj9puojkF8lfR5R8uEX08B0FxePgIH0t7DovKvZF4NHQKlq4TZHGAA1wEIdkYKvcr8nUsaa-nNYbNw3JI%3D
 """
 
+from src.models.dino import DINO, DINOv2
+from src.models.phikon import Phikon
+from src.models.resnet import ResNet
+from src.models.uni import UNI
+from src.models.virchow2 import Virchow2
+from src.models.vit import ViT
 from torch import Tensor
 
 import os
@@ -16,7 +22,24 @@ import torch.nn.functional as F
 local_dir = './assets/ckpts/vit_large_patch16_224.dinov2.uni_mass100k/'
 
 
-class BaseFsl(nn.Module):
+class WrappedFsl(nn.Module):
+    def __init__(self, backbone, hidden_dim=512, embedding_dim=128):
+        super().__init__()
+        self.backbone = backbone
+
+        with torch.no_grad():
+            test_tensor = torch.randn(1, 3, 224, 224)
+            out_dim = self.backbone(test_tensor).shape[-1]
+        # Create projection
+        self.projection = nn.Sequential(
+            nn.Linear(out_dim, hidden_dim),
+            nn.GELU(),
+            nn.Linear(hidden_dim, embedding_dim),
+        )
+        # Freeze backbone if needed
+        for param in self.backbone.parameters():
+            param.requires_grad = False
+            
     def compute_prototypes(
         self, embeddings: torch.Tensor, labels: torch.Tensor
     ) -> torch.Tensor:
@@ -62,91 +85,69 @@ class BaseFsl(nn.Module):
         # argmin → 0=neg, 1=pos
         return (-dists).softmax(dim=1)
 
-
-class WrappedFsl(BaseFsl):
-    def __init__(self, backbone, hidden_dim=512, embedding_dim=128):
-        super().__init__()
-        self.backbone = backbone
-
-        with torch.no_grad():
-            test_tensor = torch.randn(1, 3, 224, 224)
-            out_dim = self.backbone(test_tensor).shape[-1]
-        # Create projection
-        self.projection = nn.Sequential(
-            nn.Linear(out_dim, hidden_dim),
-            nn.GELU(),
-            nn.Linear(hidden_dim, embedding_dim),
-        )
-        # Freeze backbone if needed
-        for param in self.backbone.parameters():
-            param.requires_grad = False
-
     def forward(self, x):
         x = self.backbone(x)
         x = self.projection(x)
         return x
 
-
-class SemanticAttributeFsl(nn.Module):
-    def __init__(
-        self, model_name='vit_large_patch16_224', pretrained=True, config=None
-    ):
-        super(SemanticAttributeFsl, self).__init__()
-
-        # Backbone with projection head
-        self.backbone = UNIFsl(model_name, pretrained)
-        self.backbone.load_state_dict(
-            torch.load(config['model_path'], map_location='cpu'),
-            strict=True,
+class ResNetFsl(WrappedFsl):
+    def __init__(self, model_config):
+        super().__init__(
+            ResNet(model_config),
+            hidden_dim=model_config.get('hidden_dim', 512),
+            embedding_dim=model_config.get('embedding_dim', 128),
         )
 
-        # Load support set (dict: class_name -> (images, labels))
-        self.support_set = (
-            {}
-        )  # class_name -> (support_imgs: Tensor [N_shot, C, H, W], support_labels: Tensor [N_shot])
-        self.device = config.get('device', 'cpu')
-        self._load_support_set(config['support_set'])
+class DinoFsl(WrappedFsl):
+    def __init__(self, model_config):
+        super().__init__(
+            DINO(model_name=model_config['model_name']),
+            hidden_dim=model_config.get('hidden_dim', 512),
+            embedding_dim=model_config.get('embedding_dim', 128),
+        )
 
-    def _load_support_set(self, support_set_config):
-        """
-        support_set_config: dict { class_name: {"images": Tensor, "labels": Tensor} }
-        """
-        for class_name, data in support_set_config.items():
-            support_imgs = data['images'].to(
-                self.device
-            )      # [N_shot, C, H, W]
-            support_lbls = data['labels'].to(self.device)      # [N_shot]
-            self.support_set[class_name] = (support_imgs, support_lbls)
+class DINOv2Fsl(WrappedFsl):
+    def __init__(self, model_config):
+        super().__init__(
+            DINOv2(model_name=model_config['model_name']),
+            hidden_dim=model_config.get('hidden_dim', 512),
+            embedding_dim=model_config.get('embedding_dim', 128),
+        )
 
-    def forward(self, x: Tensor) -> Tensor:
-        """
-        x: [B, C, H, W] - query images
+class ViTFsl(WrappedFsl):
+    def __init__(self, model_config):
+        super().__init__(
+            ViT(model_name=model_config['model_name']),
+            hidden_dim=model_config.get('hidden_dim', 512),
+            embedding_dim=model_config.get('embedding_dim', 128),
+        )
 
-        Returns:
-            out: [B, N_classes] - probability per class
-        """
-        query_embeddings = self.backbone(x)  # [B, D]
-        all_probs = []
+class UNIFsl(WrappedFsl):
+    def __init__(self, model_config):
+        super().__init__(
+            UNI(model_name=model_config['model_name']),
+            hidden_dim=model_config.get('hidden_dim', 512),
+            embedding_dim=model_config.get('embedding_dim', 128),
+        )
 
-        for class_name, (
-            support_imgs,
-            support_lbls,
-        ) in self.support_set.items():
-            support_embeddings = self.backbone(support_imgs)  # [N_shot, D]
+class Virchow2Fsl(WrappedFsl):
+    def __init__(self, model_config):
+        super().__init__(
+             Virchow2(model_name=model_config['model_name']),
+            hidden_dim=model_config.get('hidden_dim', 512),
+            embedding_dim=model_config.get('embedding_dim', 128),
+        )
+        
+class PhikonFsl(WrappedFsl):
+    def __init__(self, model_config):
+        super().__init__(
+            Phikon(model_name=model_config['model_name']),
+            hidden_dim=model_config.get('hidden_dim', 512),
+            embedding_dim=model_config.get('embedding_dim', 128),
+        )
 
-            probs = self._prototypical_scores(
-                support_embeddings=support_embeddings,
-                support_labels=support_lbls,
-                query_embeddings=query_embeddings,
-            )  # [B]
-
-            all_probs.append(probs.unsqueeze(1))  # [B, 1]
-
-        # Concatenate along class dimension
-        out = torch.cat(all_probs, dim=1)  # [B, N_classes]
-        return out
-
-
+   
+        
 if __name__ == '__main__':
     model = UNIFsl()
     model = model.to('cuda')
