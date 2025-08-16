@@ -1,18 +1,18 @@
 from core.base_evaluator import BaseEvaluator
-from pipelines.testing_pipes.default_testing import DefaultTestingPipeline
-from pipelines.testing_pipes.few_shot_testing import FSLTestingPipeline
+from pipelines.evaluation_pipes.default_evaluation import DefaultevaluationPipeline
+from pipelines.evaluation_pipes.few_shot_evaluation import FSLevaluationPipeline
 from typing import Dict
 
 
 # If you have a default OOP pipeline, import and use it here
 
 
-def get_test_function(testing_config: Dict) -> BaseEvaluator:
-    pipeline = testing_config.get('pipeline', 'default')
+def get_eval_function(evaluation_config: Dict) -> BaseEvaluator:
+    pipeline = evaluation_config.get('pipeline', 'default')
     if pipeline == 'default':
-        return DefaultTestingPipeline()
+        return DefaultevaluationPipeline()
     if pipeline == 'fsl':
-        return FSLTestingPipeline()
+        return FSLevaluationPipeline()
 
     else:
-        raise ValueError(f'Testing pipeline {pipeline} is not supported')
+        raise ValueError(f'evaluation pipeline {pipeline} is not supported')

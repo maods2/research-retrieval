@@ -111,7 +111,7 @@ def create_embeddings_dict(
     Args:
         model: PyTorch model used for generating embeddings.
         train_loader: DataLoader for the training data.
-        test_loader: DataLoader for the testing data.
+        test_loader: DataLoader for the evaluation data.
         device: Device to perform computations ('cuda' or 'cpu').
         logger: Logger object for logging information.
 
@@ -134,7 +134,7 @@ def create_embeddings_dict(
     )
 
     logger.info('Creating embeddings database from training data...')
-    normalize_embeddings = config['testing'].get('normalize_embeddings', False)
+    normalize_embeddings = config['evaluation'].get('normalize_embeddings', False)
     db_embeddings, db_labels = create_embeddings(
         model,
         train_loader,
@@ -172,7 +172,7 @@ def create_embeddings_dict(
         ),
     }
 
-    if config['testing']['save_embeddings']:
+    if config['evaluation']['save_embeddings']:
         # Ensure the directory exists
         os.makedirs(config['workspace_dir'], exist_ok=True)
 
@@ -203,7 +203,7 @@ def load_or_create_embeddings(
         model: PyTorch model to use for creating embeddings
         train_loader: DataLoader for training data
         test_loader: DataLoader for test data
-        config: Configuration dictionary containing testing settings
+        config: Configuration dictionary containing evaluation settings
         logger: Logger instance for logging information
         device: Device to use for computation (default: None, will use cuda if available)
 
@@ -218,18 +218,18 @@ def load_or_create_embeddings(
         )
     logger.info(f'Using device: {device}')
 
-    if config['testing'].get('load_embeddings', False):
+    if config['evaluation'].get('load_embeddings', False):
         logger.info(
-            f"Loading embeddings from {config['testing']['embeddings_path']}"
+            f"Loading embeddings from {config['evaluation']['embeddings_path']}"
         )
         embeddings = np.load(
-            config['testing']['embeddings_path'], allow_pickle=True
+            config['evaluation']['embeddings_path'], allow_pickle=True
         )
-        return embeddings, config['testing']['embeddings_path']
+        return embeddings, config['evaluation']['embeddings_path']
 
     logger.info('Creating new embeddings...')
     embeddings, file_path = create_embeddings_dict(
         model, train_loader, test_loader, device, logger, config
     )
-    config['testing']['embeddings_path'] = file_path
+    config['evaluation']['embeddings_path'] = file_path
     return embeddings

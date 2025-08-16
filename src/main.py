@@ -1,17 +1,16 @@
-from pipelines import testing
-from pipelines import training
+from pipelines import eval as eval_, train
 from utils.config_loader import load_config
 
 import argparse
 
-
+eval 
 def main(args):
     config = load_config(args.config)
 
     if args.pipeline == 'train':
-        training.train_wrapper(config)
+        train.train_wrapper(config)
     elif args.pipeline == 'test':
-        testing.test_wrapper(config)
+        eval_.eval_wrapper(config)
 
     else:
         raise ValueError(f'Unsupported pipeline: {args.pipeline}')

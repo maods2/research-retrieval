@@ -38,7 +38,7 @@ def get_dataloader(config, transform_train, transforms_test):
         dataset_class = ContrastiveDataset
     else:
         raise ValueError(f'Dataset {dataset_name} is not supported.')
-    # Create dataset instances for training and testing
+    # Create dataset instances for training and evaluation
     train_dataset = dataset_class(
         root_dir=data_config['train_dir'],  # Directory for training data
         transform=transform_train,  # Transformations to apply
@@ -49,7 +49,7 @@ def get_dataloader(config, transform_train, transforms_test):
     # TODO: add support for different transformations for test set
 
     test_dataset = dataset_class(
-        root_dir=data_config['test_dir'],  # Directory for testing data
+        root_dir=data_config['test_dir'],  # Directory for evaluation data
         transform=transforms_test,  # Transformations to apply
         class_mapping=data_config['class_mapping'],  # Custom class mappings
         config=config,  # Additional config for dataset

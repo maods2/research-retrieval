@@ -17,7 +17,7 @@ class MetricBase(ABC):
         Args:
             model: PyTorch model being tested.
             train_loader: DataLoader for the training data.
-            test_loader: DataLoader for the testing data.
+            test_loader: DataLoader for the evaluation data.
             embeddings: Dictionary containing embeddings.
             config: Configuration dictionary.
             logger: Logger object for logging.

@@ -6,7 +6,7 @@ from utils.embedding_utils import load_or_create_embeddings
 import torch
 
 
-class DefaultTestingPipeline(BaseEvaluator):
+class DefaultevaluationPipeline(BaseEvaluator):
     def test(
         self,
         model,
@@ -16,7 +16,7 @@ class DefaultTestingPipeline(BaseEvaluator):
         logger,
         metric_logger: MetricLoggerBase,
     ):
-        metrics_list = get_metrics(config['testing'])
+        metrics_list = get_metrics(config['evaluation'])
         config = config
         logger = logger
         metric_logger = metric_logger

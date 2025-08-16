@@ -3,7 +3,7 @@ from core.base_metric_logger import BaseMetricLogger
 from dataclasses import dataclass
 from factories.dataset_factory import get_dataloader
 from factories.model_factory import get_model
-from factories.test_pipeline_factory import get_test_function
+from factories.test_pipeline_factory import get_eval_function
 from factories.transform_factory import get_transforms
 from torch.utils.data import DataLoader
 from utils.logger import setup_logger
@@ -16,43 +16,43 @@ class EvaluationContext:
     metric_logger: BaseMetricLogger
     model: any
     train_loader: DataLoader
-    test_loader: DataLoader
-    test_fn: BaseEvaluator
+    eval_loader: DataLoader
+    eval_fn: BaseEvaluator
 
 
 def setup_test_components(config) -> EvaluationContext:
     logger = setup_logger(config)
     metric_logger = setup_metric_logger(config)
 
-    transforms_test = get_transforms(config['transform'].get('test', None))
+    transforms_eval = get_transforms(config['transform'].get('test', None))
     model = get_model(config['model'])
-    train_loader, test_loader = get_dataloader(
-        config, transforms_test, transforms_test
+    train_loader, eval_loader = get_dataloader(
+        config, transforms_eval, transforms_eval
     )
-    test_fn = get_test_function(config['testing'])
+    eval_fn = get_eval_function(config['evaluation'])
 
     return EvaluationContext(
         logger=logger,
         metric_logger=metric_logger,
         model=model,
         train_loader=train_loader,
-        test_loader=test_loader,
-        test_fn=test_fn,
+        eval_loader=eval_loader,
+        eval_fn=eval_fn,
     )
 
 
-def run_testing(ctx: EvaluationContext, config):
+def run_evaluation(ctx: EvaluationContext, config):
     ctx.logger.info('Running test...')
-    ctx.test_fn(
+    ctx.eval_fn(
         ctx.model,
         ctx.train_loader,
-        ctx.test_loader,
+        ctx.eval_loader,
         config,
         ctx.logger,
         ctx.metric_logger,
     )
 
 
-def test_wrapper(config):
+def eval_wrapper(config):
     ctx = setup_test_components(config)
-    run_testing(ctx, config)
+    run_evaluation(ctx, config)

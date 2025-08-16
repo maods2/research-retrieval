@@ -46,7 +46,7 @@ training:
   epochs: 1
   lr_scheduler: {name: step_lr, step_size: 10}
   early_stopping_patience: 10
-testing:
+evaluation:
   enabled: true
   pipeline: default
   load_embeddings: false

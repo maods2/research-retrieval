@@ -2,14 +2,14 @@
 
 ## Overview
 
-This framework is designed for modular research in deep learning, supporting multiple models, metrics, and training/testing pipelines. It is extensible and easy to use for rapid experimentation.
+This framework is designed for modular research in deep learning, supporting multiple models, metrics, and training/evaluation pipelines. It is extensible and easy to use for rapid experimentation.
 
 ## Architecture
 
 - **src/core/**: Base abstract classes for models, metrics, and pipelines.
 - **src/models/**: Model implementations and registration.
 - **src/metrics/**: Metric implementations and registration.
-- **src/pipelines/**: Training and testing pipeline implementations.
+- **src/pipelines/**: Training and evaluation pipeline implementations.
 - **src/utils/**: Utility functions and config loader.
 - **configs/**: YAML configuration files for experiments.
 

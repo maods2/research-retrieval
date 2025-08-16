@@ -1,5 +1,5 @@
 # Few-shot learning config for ovarian cancer dataset
-# Paths and directories for training and testing data
+# Paths and directories for training and evaluation data
 data:
   dataset_type: FewShotFolderDataset
   train_dir: datasets/final/ovarian-cancer-splitted/train
@@ -75,7 +75,7 @@ transform:
       std: [0.229, 0.224, 0.225]
     to_tensor: true
 
-testing:
+evaluation:
   enabled: true
   pipeline: default
   load_embeddings: false

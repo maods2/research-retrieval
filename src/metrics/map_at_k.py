@@ -190,7 +190,7 @@ class MapAtK(MetricBase):
         """
         - model: The trained model to use for generating embeddings
         - train_loader: DataLoader for the training dataset
-        - test_loader: DataLoader for the testing dataset
+        - test_loader: DataLoader for the evaluation dataset
         - embeddings: Precomputed embeddings for evaluation
         - config: Configuration object (optional)
         - logger: Logger instance for logging messages

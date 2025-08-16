@@ -6,7 +6,7 @@ from factories.dataset_factory import get_dataloader
 from factories.loss_factory import get_loss
 from factories.model_factory import get_model
 from factories.optimizer_factory import get_optimizer
-from factories.test_pipeline_factory import get_test_function
+from factories.test_pipeline_factory import get_eval_function
 from factories.train_factory import get_train_function
 from factories.transform_factory import get_transforms
 from torch.utils.data import DataLoader
@@ -22,14 +22,14 @@ class TrainingContext:
     loss_fn: any
     optimizer: any
     train_loader: DataLoader
-    test_loader: DataLoader
+    eval_loader: DataLoader
     train_fn: BaseTrainer
-    test_fn: BaseEvaluator
+    eval_fn: BaseEvaluator
 
 
 def setup_components(config) -> TrainingContext:
     """Initializes and returns all major components based on the config."""
-    train_loader, test_loader = get_dataloader(
+    train_loader, eval_loader = get_dataloader(
         config,
         get_transforms(config['transform'].get('train')),
         get_transforms(config['transform'].get('test')),
@@ -43,9 +43,9 @@ def setup_components(config) -> TrainingContext:
             config['optimizer'], get_model(config['model'])
         ),
         train_loader=train_loader,
-        test_loader=test_loader,
+        eval_loader=eval_loader,
         train_fn=get_train_function(config),
-        test_fn=get_test_function(config['testing']),
+        eval_fn=get_eval_function(config['evaluation']),
     )
 
 
@@ -56,20 +56,20 @@ def run_training(ctx: TrainingContext, config):
         ctx.loss_fn,
         ctx.optimizer,
         ctx.train_loader,
-        ctx.test_loader,
+        ctx.eval_loader,
         config,
         ctx.logger,
         ctx.metric_logger,
     )
 
 
-def run_testing(ctx: TrainingContext, config):
-    if config['testing'].get('enabled'):
-        ctx.logger.info('Running testing...')
-        ctx.test_fn(
+def run_evaluation(ctx: TrainingContext, config):
+    if config['evaluation'].get('enabled'):
+        ctx.logger.info('Running evaluation...')
+        ctx.eval_fn(
             ctx.model,
             ctx.train_loader,
-            ctx.test_loader,
+            ctx.eval_loader,
             config,
             ctx.logger,
             ctx.metric_logger,
@@ -79,4 +79,4 @@ def run_testing(ctx: TrainingContext, config):
 def train_wrapper(config):
     ctx = setup_components(config)
     run_training(ctx, config)
-    run_testing(ctx, config)
+    run_evaluation(ctx, config)
