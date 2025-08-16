@@ -76,7 +76,12 @@ class BaseTrainer(ABC):
         logger: Callable,
     ) -> Dict[str, Any]:
         """Evaluate retrieval metrics at different k values.
-
+        This method is used during train to evaluate the model's retrieval performance
+        on a sample of the training data. This method might slow down training,
+        depending on the number of sample images used for db and query creation.
+        During training, the sample dataloader is created only once, and the 
+        embeddings can be calculated by epoch or batch depending where the method is called.
+        
         Args:
             model: The model to evaluate
             train_loader: DataLoader for training data
@@ -91,10 +96,10 @@ class BaseTrainer(ABC):
             self._initialize_sample_dataloader(
                 train_loader,
                 total_db_samples=config['training']['val_retrieval'][
-                    'total_db_samples'
+                    'n_db_images'
                 ],
                 total_query_samples=config['training']['val_retrieval'][
-                    'total_query_samples'
+                    'n_query_images'
                 ],
                 seed=config['training']['val_retrieval']['seed'],
             )

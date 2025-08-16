@@ -7,8 +7,6 @@ from typing import Any
 from typing import Callable
 from typing import Dict
 from typing import Tuple
-from utils.checkpoint_utils import save_model_and_log_artifact
-from utils.dataloader_utils import create_balanced_db_and_query
 from utils.metrics_utils import compute_metrics
 
 import numpy as np
@@ -146,7 +144,6 @@ class FewShotTrain(BaseTrainer):
         )
         model.to(device)
         epochs = config['training']['epochs']
-        patience = config['training'].get('early_stopping_patience', 10)
 
         min_loss = float('inf')
         epochs_without_improvement = 0
