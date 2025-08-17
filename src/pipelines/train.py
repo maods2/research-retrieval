@@ -1,7 +1,3 @@
-from core.base_evaluator import BaseEvaluator
-from core.base_metric_logger import BaseMetricLogger
-from core.base_trainer import BaseTrainer
-from dataclasses import dataclass
 from factories.dataset_factory import get_dataloader
 from factories.evaluation_factory import get_eval_function
 from factories.loss_factory import get_loss
@@ -9,22 +5,9 @@ from factories.model_factory import get_model
 from factories.optimizer_factory import get_optimizer
 from factories.train_factory import get_train_function
 from factories.transform_factory import get_transforms
-from torch.utils.data import DataLoader
+from schemas.training_context import TrainingContext
 from utils.logger import setup_logger
 from utils.metric_logger import setup_metric_logger
-
-
-@dataclass
-class TrainingContext:
-    logger: any
-    metric_logger: BaseMetricLogger
-    model: any
-    loss_fn: any
-    optimizer: any
-    train_loader: DataLoader
-    eval_loader: DataLoader
-    train_fn: BaseTrainer
-    eval_fn: BaseEvaluator
 
 
 def setup_components(config) -> TrainingContext:
@@ -46,37 +29,22 @@ def setup_components(config) -> TrainingContext:
         eval_loader=eval_loader,
         train_fn=get_train_function(config),
         eval_fn=get_eval_function(config['evaluation']),
+        config=config,
     )
 
 
-def run_training(ctx: TrainingContext, config):
+def run_training(ctx: TrainingContext):
     ctx.logger.info('Starting training...')
-    ctx.train_fn(
-        ctx.model,
-        ctx.loss_fn,
-        ctx.optimizer,
-        ctx.train_loader,
-        ctx.eval_loader,
-        config,
-        ctx.logger,
-        ctx.metric_logger,
-    )
+    ctx.train_fn(ctx)
 
 
-def run_evaluation(ctx: TrainingContext, config):
-    if config['evaluation'].get('enabled'):
+def run_evaluation(ctx: TrainingContext):
+    if ctx.config['evaluation'].get('enabled'):
         ctx.logger.info('Running evaluation...')
-        ctx.eval_fn(
-            ctx.model,
-            ctx.train_loader,
-            ctx.eval_loader,
-            config,
-            ctx.logger,
-            ctx.metric_logger,
-        )
+        ctx.eval_fn(ctx)
 
 
 def train_wrapper(config):
     ctx = setup_components(config)
-    run_training(ctx, config)
-    run_evaluation(ctx, config)
+    run_training(ctx)
+    run_evaluation(ctx)

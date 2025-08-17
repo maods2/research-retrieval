@@ -7,6 +7,7 @@ from typing import Any
 from typing import Callable
 from typing import Dict
 from typing import Tuple
+from schemas.training_context import TrainingContext
 from utils.metrics_utils import compute_metrics
 
 import numpy as np
@@ -128,22 +129,12 @@ class FewShotTrainer(BaseTrainer):
 
         return avg_loss, avg_acc, (support, s_lbls)
 
-    def __call__(
-        self,
-        model,
-        loss_fn,
-        optimizer,
-        train_loader,
-        test_loader,
-        config,
-        logger,
-        metric_logger: BaseMetricLogger,
-    ):
-        device = config.get(
+    def __call__(self, ctx: TrainingContext):        
+        device = ctx.config.get(
             'device', 'cuda' if torch.cuda.is_available() else 'cpu'
         )
-        model.to(device)
-        epochs = config['training']['epochs']
+        ctx.model.to(device)
+        epochs = ctx.config['training']['epochs']
 
         min_loss = float('inf')
         epochs_without_improvement = 0
@@ -155,19 +146,19 @@ class FewShotTrainer(BaseTrainer):
             'f1_score_val': [],
         }
 
-        test_loader.dataset.k_shot = 1
-        test_loader.dataset.validation_dataset = True
+        ctx.test_loader.dataset.k_shot = 1
+        ctx.test_loader.dataset.validation_dataset = True
 
         for epoch in range(epochs):
             avg_loss, avg_acc, support_set = self.train_one_epoch(
-                model, optimizer, train_loader, device, epoch
+                ctx.model, ctx.optimizer, ctx.train_loader, device, epoch
             )
 
             metrics = self.eval_few_shot_classification(
-                model, test_loader, support_set, device, config, logger
+                ctx.model, ctx.test_loader, support_set, device, ctx.config, ctx.logger
             )
 
-            logger.info(
+            ctx.logger.info(
                 f'[Epoch {epoch+1}/{epochs}] Loss: {avg_loss:.4f} | Acc: {avg_acc:.4f}'
             )
             print(
@@ -185,18 +176,18 @@ class FewShotTrainer(BaseTrainer):
                 epochs_without_improvement,
                 checkpoint_path,
             ) = self.save_model_if_best(
-                model=model,
+                model=ctx.model,
                 metric=avg_loss,
                 best_metric=min_loss,
                 epochs_without_improvement=epochs_without_improvement,
                 checkpoint_path=checkpoint_path,
-                config=config,
-                metric_logger=metric_logger,
+                config=ctx.config,
+                metric_logger=ctx.metric_logger,
                 mode='loss',
             )
 
             if should_stop:
-                logger.info(
+                ctx.logger.info(
                     f'Early stopping triggered after {epochs_without_improvement} epochs with no improvement.'
                 )
                 print(
@@ -205,6 +196,6 @@ class FewShotTrainer(BaseTrainer):
                 break
 
         train_history['last_epoch_metrics'] = metrics
-        metric_logger.log_json(train_history, 'train_metrics')
+        ctx.metric_logger.log_json(train_history, 'train_metrics')
 
-        return model
+        return ctx.model

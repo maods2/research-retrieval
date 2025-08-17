@@ -1,39 +1,28 @@
 from core.base_evaluator import BaseEvaluator
 from core.base_metric_logger import BaseMetricLogger
 from factories.metric_factory import get_metrics
+from schemas.evaluation_context import EvaluationContext
 from utils.embedding_utils import load_or_create_embeddings
 
 import torch
 
 
 class DefaulRetrievaltEvaluator(BaseEvaluator):
-    def test(
-        self,
-        model,
-        train_loader,
-        test_loader,
-        config,
-        logger,
-        metric_logger: BaseMetricLogger,
-    ):
-        metrics_list = get_metrics(config['evaluation'])
-        config = config
-        logger = logger
-        metric_logger = metric_logger
-        model = model
-        train_loader = train_loader
-        test_loader = test_loader
+    def test(self, ctx: EvaluationContext):
+        
+        metrics_list = get_metrics(ctx.config['evaluation'])
+
         device = (
-            config['device']
-            if config.get('device')
+            ctx.config['device']
+            if ctx.config.get('device')
             else ('cuda' if torch.cuda.is_available() else 'cpu')
         )
         embeddings = load_or_create_embeddings(
-            model, train_loader, test_loader, config, logger, device
+            ctx.model, ctx.train_loader, ctx.eval_loader, ctx.config, ctx.logger, device
         )
         for metric in metrics_list:
             results = metric(
-                model, train_loader, test_loader, embeddings, config, logger
+                ctx.model, ctx.train_loader, ctx.eval_loader, embeddings, ctx.config, ctx.logger
             )
-            logger.info(f'Results for {metric.__class__.__name__}: {results}')
-            metric_logger.log_metrics(results)
+            ctx.logger.info(f'Results for {metric.__class__.__name__}: {results}')
+            ctx.metric_logger.log_metrics(results)
