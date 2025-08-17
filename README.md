@@ -31,7 +31,7 @@ The framework organizes experiment configuration into three template types: **da
 
 #### Generating Experiment Configurations
 
-To generate experiment configuration files, use the `config_template_builder.py` script. In the `main()` function, define your experiments as a list of tuples, where each tuple specifies a combination of model and dataset parameters. For example:
+To generate experiment configuration files, use the `config_builder.py` script. In the `main()` function, define your experiments as a list of tuples, where each tuple specifies a combination of model and dataset parameters. For example:
 
 ```python
 def main():
