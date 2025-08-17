@@ -43,62 +43,57 @@ def save_config(config, out_path):
     with open(out_path, 'w') as f:
         yaml.dump(config, f)
 
-def generate(datasets, models):
+def generate(experiments):
     base_path = Path('configs/templates/general/base.yml')
-    for dataset_name, dataset_template in datasets:
+    for model_code, model_name, pipeline_type, model_template, dataset_name, dataset_template in experiments:
         data_path = Path(f'configs/templates/datasets/{dataset_template}.yml')
         out_dir = Path(f'configs/{dataset_name}')
         out_dir.mkdir(parents=True, exist_ok=True)
-        for model_code, model_name, pipeline_type, model_template in models:
-            model_path = Path(f'configs/templates/models/{model_code}.yml')
-            replacements = {
-                'pipeline_type': pipeline_type,
-                'model_code': model_code,
-                'dataset_name': dataset_name,
-                'model_name': model_name
-            }
-            config = build_config(base_path, model_path, data_path, replacements)
-            out_path = out_dir / f'{model_template}.yml'
-            save_config(config, out_path)
-            print(f'Generated: {out_path}')
+        
+        model_path = Path(f'configs/templates/models/{model_template}.yml')
+        replacements = {
+            'pipeline_type': pipeline_type,
+            'model_code': model_code,
+            'dataset_name': dataset_name,
+            'model_name': model_name
+        }
+        config = build_config(base_path, model_path, data_path, replacements)
+        out_path = out_dir / f'{model_code}.yml'
+        save_config(config, out_path)
+        print(f'Generated: {out_path}')
 
 
 def main():
     # Define assets (extend as needed)
-    datasets = [
-        # (dataset_name, dataset_template)
-        # ('glomerulo', 'glomerulo'),
-        # ( 'bracs', 'bracs'),
-       ( 'skin-cancer', 'skin-cancer'),
 
-    ]
-    # Models from config_models.py style
-    models = [
-        # (model_code, model_name, pipeline_type, model_template)
+    experiments = [
+    #   (model_code,        model_name,         pipeline_type,          model_template    dataset_name,   dataset_template)                            )
+
+        ("resnet",          "resnet",           "default_trainer",      "00-default",      "skin-cancer",  "skin-cancer" ),
         
-        ("resnet", "resnet", "default_trainer", "00-default"),
-        ("dino", "dino", "default_trainer", "00-default"),
-        ("dinov2", "dinov2", "default_trainer", "00-default"),
-        ("vit", "vit", "default_trainer", "00-default"),
-        ("uni", "uni", "default_trainer", "00-default"),
-        ("UNI2-h", "UNI2-h", "default_trainer", "00-default"),
-        ("virchow2", "virchow2", "default_trainer", "00-default"),
-        ("phikon", "phikon", "default_trainer", "00-default"),
-        ("phikon-v2", "phikon-v2", "default_trainer", "00-default"),
-        ("resnet_fsl", "resnet50", "fsl_trainer", "01-few-shot"),
-        ("dino_fsl", "dino_fsl", "fsl_trainer", "01-few-shot"),
-        ("dinov2_fsl", "dinov2_fsl", "fsl_trainer", "01-few-shot"),
-        ("vit_fsl", "vit_fsl", "fsl_trainer", "01-few-shot"),
-        ("uni_fsl", "uni_fsl", "fsl_trainer", "01-few-shot"),
-        ("UNI2-h_fsl", "UNI2-h_fsl", "fsl_trainer", "01-few-shot"),
-        ("virchow2_fsl", "virchow2_fsl", "fsl_trainer", "01-few-shot"),
-        ("phikon_fsl", "phikon_fsl", "fsl_trainer", "01-few-shot"),
-        ("phikon-v2_fsl", "phikon-v2_fsl", "fsl_trainer", "01-few-shot"),
+        
+        # ("dino",            "dino",             "default_trainer",      "00-default",      "skin-cancer",  "skin-cancer" ),
+        # ("dinov2",          "dinov2",           "default_trainer",      "00-default",      "skin-cancer",  "skin-cancer" ),
+        # ("vit",             "vit",              "default_trainer",      "00-default",      "skin-cancer",  "skin-cancer" ),
+        # ("uni",             "uni",              "default_trainer",      "00-default",      "skin-cancer",  "skin-cancer" ),
+        # ("UNI2-h",          "UNI2-h",           "default_trainer",      "00-default",      "skin-cancer",  "skin-cancer" ),
+        # ("virchow2",        "virchow2",         "default_trainer",      "00-default",      "skin-cancer",  "skin-cancer" ),
+        # ("phikon",          "phikon",           "default_trainer",      "00-default",      "skin-cancer",  "skin-cancer" ),
+        # ("phikon-v2",       "phikon-v2",        "default_trainer",      "00-default",      "skin-cancer",  "skin-cancer" ),
+        # ("resnet_fsl",      "resnet50",         "fsl_trainer",          "01-few-shot",     "skin-cancer",  "skin-cancer" ),
+        # ("dino_fsl",        "dino_fsl",         "fsl_trainer",          "01-few-shot",     "skin-cancer",  "skin-cancer" ),
+        # ("dinov2_fsl",      "dinov2_fsl",       "fsl_trainer",          "01-few-shot",     "skin-cancer",  "skin-cancer" ),
+        # ("vit_fsl",         "vit_fsl",          "fsl_trainer",          "01-few-shot",     "skin-cancer",  "skin-cancer" ),
+        # ("uni_fsl",         "uni_fsl",          "fsl_trainer",          "01-few-shot",     "skin-cancer",  "skin-cancer" ),
+        # ("UNI2-h_fsl",      "UNI2-h_fsl",       "fsl_trainer",          "01-few-shot",     "skin-cancer",  "skin-cancer" ),
+        # ("virchow2_fsl",    "virchow2_fsl",     "fsl_trainer",          "01-few-shot",     "skin-cancer",  "skin-cancer" ),
+        # ("phikon_fsl",      "phikon_fsl",       "fsl_trainer",          "01-few-shot",     "skin-cancer",  "skin-cancer" ),
+        # ("phikon-v2_fsl",   "phikon-v2_fsl",    "fsl_trainer",          "01-few-shot",     "skin-cancer",  "skin-cancer" ),
 
     ]
     
     # Generate configurations
-    generate(datasets, models)
+    generate(experiments)
 
 
 if __name__ == '__main__':
