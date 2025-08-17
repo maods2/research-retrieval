@@ -1,6 +1,6 @@
 from abc import ABC
 from abc import abstractmethod
-from core.base_metric import MetricLoggerBase
+from core.base_metric_logger import BaseMetricLogger
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 from typing import Any
@@ -188,7 +188,7 @@ class BaseTrainer(ABC):
             epochs_without_improvement (int): Counter for early stopping.
             checkpoint_path (str): Path to the current model checkpoint (may be None).
             config (dict): Configuration dictionary.
-            metric_logger (MetricLoggerBase): Logger to register saved model artifacts.
+            metric_logger (BaseMetricLogger): Logger to register saved model artifacts.
             mode (str): Metric mode: 'loss' (lower is better) or 'accuracy' (higher is better).
 
         Returns:
@@ -228,7 +228,7 @@ class BaseTrainer(ABC):
         test_loader: torch.utils.data.DataLoader,
         config: dict,
         logger: callable,
-        metric_logger: MetricLoggerBase,
+        metric_logger: BaseMetricLogger,
     ) -> torch.nn.Module:
         raise NotImplementedError('Subclasses must implement this method.')
 

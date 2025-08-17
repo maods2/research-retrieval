@@ -123,7 +123,7 @@ class FileUtils:
         return filepath
 
 
-class TxtMetricLogger(MetricLoggerBase):
+class TxtMetricLogger(BaseMetricLogger):
     def __init__(self, config: Dict):
         self.config = config
 

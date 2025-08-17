@@ -24,7 +24,7 @@ notebooks/*.jpg
 *.json
 *.mat
 *.csv
-# *.txt
+logs.txt
 
 *path.txt
 

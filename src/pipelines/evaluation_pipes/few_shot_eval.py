@@ -1,7 +1,7 @@
 from core.base_evaluator import BaseEvaluator
-from core.base_metric import MetricLoggerBase
+from core.base_metric_logger import BaseMetricLogger
 from dataloaders.dataset_fewshot import SupportSetDataset
-from pipelines.training_pipes.few_shot_trainer import FewShotTrain
+from pipelines.training_pipes.few_shot_trainer import FewShotTrainer
 from torch.utils.data import DataLoader
 
 import torch
@@ -43,7 +43,7 @@ class FSLevaluationPipeline(BaseEvaluator):
         test_loader,
         config,
         logger,
-        metric_logger: MetricLoggerBase,
+        metric_logger: BaseMetricLogger,
     ):
         """
         Run metrics on the test data and log the results.
@@ -53,7 +53,7 @@ class FSLevaluationPipeline(BaseEvaluator):
             if config.get('device')
             else ('cuda' if torch.cuda.is_available() else 'cpu')
         )
-        fslt = FewShotTrain(config={})
+        fslt = FewShotTrainer(config={})
         model.to(device)
         support_set = self.load_support_set_from_loader(config, device=device)
         train_val = fslt.eval_few_shot_classification(

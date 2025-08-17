@@ -1,5 +1,4 @@
 from dataloaders.dataset import StandardImageDataset
-from dataloaders.dataset_terumo import TerumoImageDataset
 from pathlib import Path
 from torch.utils.data import Dataset
 from typing import Tuple
@@ -90,38 +89,6 @@ class TripletDataset(StandardImageDataset):
     def set_transform(self, transform):
         self.transform = transform
 
-
-class MixedTripletDataset(Dataset):
-    def __init__(
-        self, root_dir, transform=None, class_mapping=None, config=None
-    ):
-        self.triplet_active = True
-        self._multiclass_dataset = TerumoImageDataset(
-            root_dir, transform, class_mapping
-        )
-        self._triplet_dataset = TripletDataset(
-            root_dir, transform, class_mapping
-        )
-        self.labels = self._multiclass_dataset.labels
-        self.image_paths = self._multiclass_dataset.image_paths
-        self.class_mapping = self._multiclass_dataset.class_mapping
-        self.labels_str = self._multiclass_dataset.labels_str
-
-    def __len__(self):
-        if self.triplet_active:
-            return self._triplet_dataset.__len__()
-        return self._multiclass_dataset.__len__()
-
-    def __getitem__(self, idx: int):
-        if self.triplet_active:
-            return self._triplet_dataset.__getitem__(idx)
-        return self._multiclass_dataset.__getitem__(idx)
-
-    def switch_to_classifcation_dataset(self):
-        self.triplet_active = False
-
-    def switch_to_triplet_dataset(self):
-        self.triplet_active = True
 
 
 # Example usage

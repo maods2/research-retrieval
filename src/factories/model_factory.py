@@ -25,7 +25,7 @@ from src.utils.checkpoint_utils import load_checkpoint
 
 
 def get_model(model_config):
-    model_code = model_config.get('model_name').lower()
+    model_code = model_config.get('model_code').lower()
 
     if model_code == 'resnet':
         model = ResNet(model_config)

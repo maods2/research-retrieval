@@ -25,6 +25,27 @@ class ResNet18(nn.Module):
         x = self.backbone(x)
         return x
 
+class ResNet18Classification(nn.Module):
+    def __init__(self, config):
+        super(ResNet18Classification, self).__init__()
+        freeze_params = config.get('freeze_params', True)
+        num_classes = config.get('num_classes')
+
+        self.backbone = models.resnet18(weights=ResNet18_Weights.IMAGENET1K_V1)
+        in_features = self.backbone.fc.in_features
+        self.backbone.fc = nn.Linear(in_features, num_classes)
+
+        if freeze_params:
+            print('Freezing ResNet18 backbone parameters (except fc)')
+            for name, param in self.backbone.named_parameters():
+                if not name.startswith('fc'):
+                    param.requires_grad = False
+
+
+    def forward(self, x):
+        x = self.backbone(x)
+        return x
+
 
 class ResNet34(nn.Module):
     def __init__(self, config):
@@ -73,7 +94,10 @@ class ResNet(nn.Module):
         elif model_name == 'resnet34':
             self.model = ResNet34(model_config)
         elif model_name == 'resnet50':
-            self.model = ResNet50(model_config)
+            self.model = ResNet50(model_config)    
+        elif model_name == 'resnet18_classif':
+            self.model = ResNet18Classification(model_config)
+            
         else:
             raise ValueError(f'Unknown model_name: {model_name}')
 

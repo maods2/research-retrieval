@@ -72,7 +72,7 @@ def main():
     experiments = [
     #   (model_code,        model_name,         pipeline_type,          model_template    dataset_name,   dataset_template)                            )
 
-        ("resnet",          "resnet",           "default_trainer",      "00-default",      "skin-cancer",  "skin-cancer" ),
+        ("resnet",          "resnet18_classif",   "default_trainer",      "00-default",      "ovarian-cancer",  "ovarian-cancer" ),
         
         
         # ("dino",            "dino",             "default_trainer",      "00-default",      "skin-cancer",  "skin-cancer" ),

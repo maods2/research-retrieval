@@ -1,7 +1,6 @@
 from dataloaders.dataset import StandardImageDataset
 from dataloaders.dataset_contrastive import ContrastiveDataset
 from dataloaders.dataset_fewshot import FewShotFolderDataset
-from dataloaders.dataset_triplet import MixedTripletDataset
 from dataloaders.dataset_triplet import TripletDataset
 from torch.utils.data import DataLoader
 
@@ -30,8 +29,6 @@ def get_dataloader(config, transform_train, transforms_test):
         dataset_class = StandardImageDataset
     elif dataset_name == 'TripletDataset':
         dataset_class = TripletDataset
-    elif dataset_name == 'MixedTripletDataset':
-        dataset_class = MixedTripletDataset
     elif dataset_name == 'FewShotFolderDataset':
         dataset_class = FewShotFolderDataset
     elif dataset_name == 'ContrastiveDataset':
@@ -46,7 +43,6 @@ def get_dataloader(config, transform_train, transforms_test):
         config=config,  # Additional config for dataset
     )
 
-    # TODO: add support for different transformations for test set
 
     test_dataset = dataset_class(
         root_dir=data_config['test_dir'],  # Directory for evaluation data

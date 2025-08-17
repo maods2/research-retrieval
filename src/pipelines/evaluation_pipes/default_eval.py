@@ -1,5 +1,5 @@
 from core.base_evaluator import BaseEvaluator
-from core.base_metric import MetricLoggerBase
+from core.base_metric_logger import BaseMetricLogger
 from factories.metric_factory import get_metrics
 from utils.embedding_utils import load_or_create_embeddings
 
@@ -14,7 +14,7 @@ class DefaultEvaluationPipeline(BaseEvaluator):
         test_loader,
         config,
         logger,
-        metric_logger: MetricLoggerBase,
+        metric_logger: BaseMetricLogger,
     ):
         metrics_list = get_metrics(config['evaluation'])
         config = config

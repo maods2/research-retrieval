@@ -8,14 +8,14 @@ import time
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
-from core.metric_base import MetricBase
+from core.base_metric import BaseMetric
 from sklearn.metrics.pairwise import cosine_similarity
 
 import numpy as np
 import torch
 
 
-class MapAtK(MetricBase):
+class MapAtK(BaseMetric):
     def __init__(
         self,
         k_values,
