@@ -1,0 +1,21 @@
+evaluation:
+  enabled: true
+  pipeline: <pipeline_type> # Specify the evaluation pipeline. 'default' for standard image retrieval.
+  load_embeddings: false # Load precomputed embeddings
+  embeddings_path: '' # Path to load embeddings if needed
+  save_embeddings: true
+  normalize_embeddings: false
+  list_of_metrics:
+    - type: map@k
+      k_values: [1, 3, 6, 9, 12, 15]
+
+logging:
+  log_file: ./logs.txt
+  log_level: INFO
+
+metric_logging:
+  tool: txt # txt, mlflow
+
+output:
+  results_dir: ./local_experiments/<model_name>/<dataset_name>
+

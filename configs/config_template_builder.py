@@ -44,8 +44,11 @@ def save_config(config, out_path):
         yaml.dump(config, f)
 
 def generate(experiments):
-    base_path = Path('configs/templates/general/base.yml')
     for model_code, model_name, pipeline_type, model_template, dataset_name, dataset_template in experiments:
+        
+        base_config = 'base_train' if 'trainer' in pipeline_type else 'base_test'
+        
+        base_path = Path(f'configs/templates/general/{base_config}.yml')
         data_path = Path(f'configs/templates/datasets/{dataset_template}.yml')
         out_dir = Path(f'configs/{dataset_name}')
         out_dir.mkdir(parents=True, exist_ok=True)

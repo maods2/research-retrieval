@@ -21,7 +21,7 @@ This framework is designed for modular research in deep learning, supporting mul
 
 ## Extensibility
 
-To extend the framework, you can add new models, loss functions, datasets, metrics (retrieval or classification), optimizers, and both training and evaluation pipelines. Typically, this involves creating your custom script and registering the new function or class in the appropriate factory module.
+To extend the framework, you can add new models, loss functions, datasets, metrics (retrieval or classification), optimizers, and both training and evaluation pipelines. This typically involves implementing your custom script and registering the new function or class in the appropriate factory module.
 
 After implementing your component, update or create configuration templates as needed. You may need to generate new dataset, model, or general config files to support your additions.
 
@@ -45,6 +45,8 @@ def main():
   # ...
 ```
 
+The script determines the base configuration template automatically based on the `pipeline_type` value. If the `pipeline_type` string contains the suffix `trainer`, it sets `base_config = 'base_train'`; otherwise, it uses `base_config = 'base_test'`. This means that any pipeline type ending with `trainer` will use the training base configuration, while others (such as evaluation pipelines) will use the evaluation base configuration. This convention ensures that the correct base template is selected for each experiment type.
+
 Edit the `experiments` list to match your desired combinations. The script will generate configuration files for each experiment, making it easy to manage and scale your research workflows.
 
 #### Field Definitions
@@ -56,7 +58,7 @@ Edit the `experiments` list to match your desired combinations. The script will 
 - **models**
   - `model_code`: Identifier used in `model_factory` to select the model.
   - `model_name`: Name for loading the model weights.
-  - `pipeline_type`: Name of the training pipeline to use.
+  - `pipeline_type`: Name of the training or evaluation pipeline to use (the suffix `trainer` determines if it is a training pipeline, otherwise will be evaluation pipeline).
   - `model_template`: YAML template containing model-specific configuration.
 
 This structure ensures clarity and flexibility when defining and generating experiment configurations.
