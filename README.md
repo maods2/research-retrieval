@@ -96,6 +96,23 @@ If the existing training pipelines do not fit your needs, you can create a custo
 
 For reference, see the implementation in `default_trainer.py` for guidance on structuring your custom trainer.
 
+## Environment Setup
+
+The recommended way to use this framework is with Docker and the VS Code Dev Containers extension. The provided `Dockerfile` references a pre-built image on Docker Hub that includes PyTorch and `nvidia/cuda:12.6.3-devel-ubuntu22.04` with GPU support. If you want to review the steps used to build this image, see the `Dockerfile.toBuild` file. To open the project in a dev container, install the VS Code Dev Containers extension and follow the prompts to reopen the folder in the container.
+
+If you prefer not to use VS Code or dev containers, you can still use the Docker image directly. Open a terminal in your repository folder, build the container, and run it in interactive mode. Map the current directory as a volume to the container so that file changes are reflected automatically. You can then run scripts from the terminal inside the container. See the `run_gpu_container.sh` script for usage details.
+```bash
+# buid docker image
+docker build -t retrieval-gpu-experiments .
+
+# run docker image
+docker run -it --rm --gpus all \
+  --shm-size=16g \
+  -v "$(pwd)":/workspaces/research-template \
+  retrieval-gpu-experiments 
+```
+
+For running multiple training pipelines on a remote server, connect via SSH, use `tmux` to manage terminal sessions, build and attach the container using `run_gpu_container.sh`, download datasets and model artifacts with the provided Makefile scripts, and launch your jobs as needed.
 
 ## Running Experiments
 
