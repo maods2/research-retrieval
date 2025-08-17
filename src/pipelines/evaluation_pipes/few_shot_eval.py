@@ -11,7 +11,7 @@ class FSLevaluationPipeline(BaseEvaluator):
     @staticmethod
     def load_support_set_from_loader(config, device='cpu'):
         """
-        Carrega todas as imagens e labels do support_loader e empilha em dois tensores únicos.
+        Load all images and labels from the support_loader and stack them into two single tensors.
         Returns:
             support_set: Tensor [N_total, C, H, W]
             support_labels: Tensor [N_total]

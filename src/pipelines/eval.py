@@ -3,7 +3,7 @@ from core.base_metric_logger import BaseMetricLogger
 from dataclasses import dataclass
 from factories.dataset_factory import get_dataloader
 from factories.model_factory import get_model
-from factories.test_pipeline_factory import get_eval_function
+from factories.evaluation_factory import get_eval_function
 from factories.transform_factory import get_transforms
 from torch.utils.data import DataLoader
 from utils.logger import setup_logger

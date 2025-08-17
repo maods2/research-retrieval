@@ -6,7 +6,7 @@ from factories.dataset_factory import get_dataloader
 from factories.loss_factory import get_loss
 from factories.model_factory import get_model
 from factories.optimizer_factory import get_optimizer
-from factories.test_pipeline_factory import get_eval_function
+from factories.evaluation_factory import get_eval_function
 from factories.train_factory import get_train_function
 from factories.transform_factory import get_transforms
 from torch.utils.data import DataLoader
