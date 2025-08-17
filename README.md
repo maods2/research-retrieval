@@ -25,31 +25,47 @@ To extend the framework, you can add new models, loss functions, datasets, metri
 
 After implementing your component, update or create configuration templates as needed. You may need to generate new dataset, model, or general config files to support your additions.
 
-The framework uses three types of config: templates—dataset, model, and general—which together form a complete experiment configuration. If your model or component requires extra parameters not present in the default templates, you can create a new template specific to your needs. This approach applies to all configurable components. 
+### Configuration Templates
 
+The framework organizes experiment configuration into three template types: **dataset**, **model**, and **general**. These templates are combined to form a complete configuration for each experiment. If your model or component requires additional parameters not present in the default templates, you can create a custom template to accommodate your needs. This modular approach applies to all configurable components.
 
-To generate experiment configuration files, use the `config_template_builder.py` script. In the `main()` function, specify the combinations of datasets, models, and training pipelines you want to generate configs for. For example:
+#### Generating Experiment Configurations
+
+To generate experiment configuration files, use the `config_template_builder.py` script. In the `main()` function, specify the combinations of datasets, models, and training pipelines for which you want to generate configs. For example:
 
 ```python
-# ...
 def main():
-    # Define datasets (add or remove as needed)
+    # List of datasets: (dataset_name, dataset_template)
     datasets = [
-        # (dataset_name, dataset_template)
         ('skin-cancer', 'skin-cancer'),
     ]
 
-    # Define models (model_code, model_name, pipeline_type, model_template)
+    # List of models: (model_code, model_name, pipeline_type, model_template)
     models = [
         ("resnet", "resnet", "default_trainer", "00-default"),
         ("dino", "dino", "default_trainer", "00-default"),
-        # ...
+        # Add more models as needed
     ]
 
     # ...
 ```
 
-Edit the `datasets` and `models` lists to match your experiment needs. The script will generate configuration files for all specified combinations, making it easy to scale and manage experiments.
+Edit the `datasets` and `models` lists to match your experiment requirements. The script will automatically generate configuration files for all specified combinations, making it easy to scale and manage experiments.
+
+#### Field Definitions
+
+- **datasets**
+  - `dataset_name`: Name of the dataset folder.
+  - `dataset_template`: YAML template containing configuration for the dataset.
+
+- **models**
+  - `model_code`: Identifier used in `model_factory` to select the model.
+  - `model_name`: Name for loading the model weights.
+  - `pipeline_type`: Name of the training pipeline to use.
+  - `model_template`: YAML template containing model-specific configuration.
+
+This structure ensures clarity and flexibility when defining and generating experiment configurations.
+
 
 ### Adding a New Model
 1. Implement your model in `src/models/your_model.py`, inheriting from `BaseModel`.
@@ -59,7 +75,17 @@ Edit the `datasets` and `models` lists to match your experiment needs. The scrip
 1. Implement your metric in `src/metrics/your_metric.py`, inheriting from `BaseMetric`.
 2. Register your metric in `metric_factory.py` by adding an entry to the `metric_modules` dictionary, mapping the metric name to its module path.
 
-### Adding New dataset
+### Adding a New Dataset
+
+To add a new dataset to the framework:
+
+1. Place your dataset files in a new folder under `data/` (e.g., `data/your_dataset/`).
+2. Create a dataset loader script in `src/datasets/your_dataset.py`, implementing the required dataset interface or inheriting from the appropriate base class.
+3. Register your dataset in the dataset factory (e.g., `dataset_factory.py`) by adding an entry that maps the dataset name to your loader class.
+4. Create a YAML configuration template for your dataset in `configs/templates/dataset/your_dataset.yaml`. This should specify dataset-specific parameters such as paths, splits, and preprocessing options.
+5. Update or generate experiment configuration files to include your new dataset template as needed.
+
+This process ensures your dataset is discoverable and configurable within the framework's modular experiment setup.
 
 
 ### Adding a New Training Pipeline
@@ -73,12 +99,6 @@ If the existing training pipelines do not fit your needs, you can create a custo
 
 For reference, see the implementation in `default_trainer.py` for guidance on structuring your custom trainer.
 
-
-
-
-## Example Config
-
-See `configs/templates/few_shot/default_train_config.yaml` for a full example. The config controls model, pipeline, metrics, and training parameters.
 
 ## Running Experiments
 
