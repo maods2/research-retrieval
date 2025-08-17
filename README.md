@@ -89,7 +89,7 @@ This process ensures your dataset is discoverable and configurable within the fr
 
 If the existing training pipelines do not fit your needs, you can create a custom pipeline as follows:
 
-1. Implement your pipeline in `src/pipelines/your_trainer.py`, inheriting from the appropriate base class (e.g., `BaseTrainer`).
+1. Implement your pipeline in `src/pipelines/training_pipes/your_trainer.py`, inheriting from the appropriate base class (e.g., `BaseTrainer`).
 2. Integrate `metric_logger` into your pipeline to automatically log configurations and track metrics during training and evaluation.
 3. Register your new pipeline in `train_factory.py` to make it discoverable by the framework.
 4. Ensure your trainer implements at least the `__call__` and `train_one_epoch` methods, as these are required for the main training flow.
