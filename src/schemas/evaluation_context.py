@@ -11,4 +11,5 @@ class EvaluationContext:
     train_loader: DataLoader
     eval_loader: DataLoader
     eval_fn: callable
+    metrics: list
     config: any

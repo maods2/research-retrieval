@@ -42,7 +42,7 @@ class FewShotTrainer(BaseTrainer):
     def eval_few_shot_classification(
         self,
         model: torch.nn.Module,
-        test_loader: DataLoader,
+        eval_loader: DataLoader,
         support_set: Tuple[torch.Tensor, torch.Tensor],
         device: str,
         config: Dict[str, Any],
@@ -53,7 +53,7 @@ class FewShotTrainer(BaseTrainer):
 
         Args:
             model: Model with feature embedding capability.
-            test_loader: Dataloader providing (support, s_lbls, query, q_lbls) tuples.
+            eval_loader: Dataloader providing (support, s_lbls, query, q_lbls) tuples.
             support_set: Tuple containing support embeddings and labels.
             config: Dictionary with configuration parameters. Expected: device.
             logger: Logging function.
@@ -67,7 +67,7 @@ class FewShotTrainer(BaseTrainer):
         model.eval()
 
         with torch.no_grad():
-            for query, q_lbls in tqdm(test_loader, desc='Evaluating'):
+            for query, q_lbls in tqdm(eval_loader, desc='Evaluating'):
                 # Remove batch dim [1, N, ...] -> [N, ...]
                 support = support_set[0].to(device)
                 s_lbls = support_set[1].to(device)
@@ -146,8 +146,8 @@ class FewShotTrainer(BaseTrainer):
             'f1_score_val': [],
         }
 
-        ctx.test_loader.dataset.k_shot = 1
-        ctx.test_loader.dataset.validation_dataset = True
+        ctx.eval_loader.dataset.k_shot = 1
+        ctx.eval_loader.dataset.validation_dataset = True
 
         for epoch in range(epochs):
             avg_loss, avg_acc, support_set = self.train_one_epoch(
@@ -155,7 +155,7 @@ class FewShotTrainer(BaseTrainer):
             )
 
             metrics = self.eval_few_shot_classification(
-                ctx.model, ctx.test_loader, support_set, device, ctx.config, ctx.logger
+                ctx.model, ctx.eval_loader, support_set, device, ctx.config, ctx.logger
             )
 
             ctx.logger.info(

@@ -14,4 +14,5 @@ class TrainingContext:
     eval_loader: DataLoader
     train_fn: callable
     eval_fn: callable
+    metrics: list
     config: any

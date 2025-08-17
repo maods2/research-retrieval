@@ -17,6 +17,8 @@ evaluation:
   list_of_metrics:
     - type: map@k
       k_values: [1, 3, 6, 9, 12, 15]
+      similarity_type: similarity # similarity or distance
+      similarity_fn: cosine # cosine, euclidean, custom
 
 logging:
   log_file: ./logs.txt

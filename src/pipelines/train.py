@@ -1,6 +1,7 @@
 from factories.dataset_factory import get_dataloader
 from factories.evaluation_factory import get_eval_function
 from factories.loss_factory import get_loss
+from factories.metric_factory import get_metrics
 from factories.model_factory import get_model
 from factories.optimizer_factory import get_optimizer
 from factories.train_factory import get_train_function
@@ -29,6 +30,7 @@ def setup_components(config) -> TrainingContext:
         eval_loader=eval_loader,
         train_fn=get_train_function(config),
         eval_fn=get_eval_function(config['evaluation']),
+        metrics=get_metrics(config),
         config=config,
     )
 

@@ -8,10 +8,7 @@ import torch
 
 
 class DefaulRetrievaltEvaluator(BaseEvaluator):
-    def test(self, ctx: EvaluationContext):
-        
-        metrics_list = get_metrics(ctx.config['evaluation'])
-
+    def test(self, ctx: EvaluationContext):    
         device = (
             ctx.config['device']
             if ctx.config.get('device')
@@ -20,7 +17,7 @@ class DefaulRetrievaltEvaluator(BaseEvaluator):
         embeddings = load_or_create_embeddings(
             ctx.model, ctx.train_loader, ctx.eval_loader, ctx.config, ctx.logger, device
         )
-        for metric in metrics_list:
+        for metric in ctx.metrics:
             results = metric(
                 ctx.model, ctx.train_loader, ctx.eval_loader, embeddings, ctx.config, ctx.logger
             )
