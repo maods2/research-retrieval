@@ -25,7 +25,7 @@ notebooks/*.jpg
 *.mat
 *.csv
 # *.txt
-*s.txt
+
 *path.txt
 
 .venv

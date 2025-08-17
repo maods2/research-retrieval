@@ -58,7 +58,7 @@ def get_dataloader(config, transform_train, transforms_test):
     # Create DataLoader instances for both datasets
     train_loader = DataLoader(
         train_dataset,
-        batch_size=data_config['batch_size'],  # Define the batch size
+        batch_size=data_config['batch_size_train'],  # Define the batch size
         shuffle=data_config.get('suffle_train', True),  # Shuffle for training
         num_workers=data_config[
             'num_workers'
@@ -66,13 +66,13 @@ def get_dataloader(config, transform_train, transforms_test):
         pin_memory=True,  # Pin memory for faster data transfer
     )
 
-    batch_size_test = data_config.get('batch_size_test', None)
-    if batch_size_test is None:
-        batch_size_test = data_config['batch_size']
+    batch_size_eval = data_config.get('batch_size_eval', None)
+    if batch_size_eval is None:
+        batch_size_eval = data_config['batch_size_train']
 
     test_loader = DataLoader(
         test_dataset,
-        batch_size=batch_size_test,  # Define the batch size
+        batch_size=batch_size_eval,  # Define the batch size
         shuffle=data_config.get(
             'suffle_test', False
         ),  # No need to shuffle test set

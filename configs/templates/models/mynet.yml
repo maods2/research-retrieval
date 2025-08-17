@@ -1,8 +1,0 @@
-model:
-  model_name: mynet
-  input_dim: 2048
-  output_dim: 10
-  experiment_name: mynet_<dataset_name>
-  pretrained: false
-  load_checkpoint: false
-  checkpoint_path: ''

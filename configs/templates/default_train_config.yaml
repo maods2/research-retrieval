@@ -5,8 +5,8 @@ data:
   train_dir: datasets/final/ovarian-cancer-splitted/train
   test_dir: datasets/final/ovarian-cancer-splitted/test
   class_mapping: {Clear_Cell: 0, Endometri: 1, Mucinous: 2, Non_Cancerous: 3, Serous: 4}
-  batch_size: 1  # For few-shot, batch size is typically 1 (one episode per batch)
-  batch_size_test: 1
+  batch_size_train: 1  # For few-shot, batch size is typically 1 (one episode per batch)
+  batch_size_eval: 1
   num_workers: 3
   suffle_train: true
   suffle_test: false

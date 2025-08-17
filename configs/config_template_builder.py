@@ -47,32 +47,31 @@ def main():
     # Define assets (extend as needed)
     datasets = [
         'glomerulo',
-        'bracs',
-        'ovarian-cancer',
+        'skin-cancer',
+        # 'bracs',
     ]
     # Models from config_models.py style
     models = [
-        # (model_name, arch_name, pipeline_type)
+        # (model_code, model_name, pipeline_type)
         ("resnet_fsl", "resnet50", "train_few_shot_leaning"),
-        ("mynet", "", "train_mynet"),
+
     ]
-    
     
     base_path = Path('configs/templates/general/base.yml')
     for dataset in datasets:
         data_path = Path(f'configs/templates/datasets/{dataset}.yml')
         out_dir = Path(f'configs/{dataset}')
         out_dir.mkdir(parents=True, exist_ok=True)
-        for model_name, arch_name, pipeline_type in models:
-            model_path = Path(f'configs/templates/models/{model_name}.yml')
+        for model_code, model_name, pipeline_type in models:
+            model_path = Path(f'configs/templates/models/{model_code}.yml')
             replacements = {
                 'pipeline_type': pipeline_type,
-                'model_name': model_name,
+                'model_code': model_code,
                 'dataset_name': dataset,
-                'arch_name': arch_name
+                'model_name': model_name
             }
             config = build_config(base_path, model_path, data_path, replacements)
-            out_path = out_dir / f'{model_name}.yml'
+            out_path = out_dir / f'{model_code}.yml'
             save_config(config, out_path)
             print(f'Generated: {out_path}')
 
