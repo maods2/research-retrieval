@@ -72,6 +72,61 @@ This structure ensures clarity and flexibility when defining and generating expe
 1. Implement your metric in `src/metrics/your_metric.py`, inheriting from `BaseMetric`.
 2. Register your metric in `metric_factory.py` by adding an entry to the `metric_modules` dictionary, mapping the metric name to its module path.
 
+### Adding a New Similarity Function
+
+The framework supports both built-in (`cosine`, `euclidean`) and custom similarity functions. To add a new similarity function:
+
+1. **Implement the function**
+
+   * If your function is simple (e.g., based on `sklearn` or NumPy), you can add it directly as a callable.
+   * If it requires a learned model (e.g., loading weights), implement a small function that loads the model and returns the callable.
+
+   Example (`src/factories/metric_factory.py` or inline in the registry):
+
+   ```python
+   def my_custom_similarity(x, y):
+       # Example: normalized dot product
+       return (x @ y.T) / (np.linalg.norm(x) * np.linalg.norm(y))
+   ```
+
+   Or with a learned model:
+
+   ```python
+   def load_learned_similarity(config):
+       config["model"]["load_checkpoint"] = True
+       model = get_model(config["model"])
+       return model.pairwise_similarity
+   ```
+
+2. **Register the function**
+   Add an entry to the `CUSTOM_SIM_REGISTRY` in `metric_factory.py`:
+
+   ```python
+   CUSTOM_SIM_REGISTRY = {
+       "custom_similarity": lambda x, y: cosine_similarity(x, y),
+       "retriev_learned_sim": lambda config: load_learned_similarity(config),
+       "my_custom_similarity": lambda x, y: my_custom_similarity(x, y),
+   }
+   ```
+
+3. **Reference it in your config**
+   In your evaluation YAML, specify the similarity function by name:
+
+   ```yaml
+   evaluation:
+     list_of_metrics:
+       - type: map@k
+         k: 10
+         sim_function: my_custom_similarity
+         similarity_type: similarity
+   ```
+
+4. **Run your experiment**
+   When you run training or evaluation, the framework will automatically resolve your new function through the registry and inject it into the metric.
+
+This keeps similarity functions modular, pluggable, and discoverable via config, just like models and metrics.
+
+
 ### Adding a New Dataset
 
 To add a new dataset to the framework:
