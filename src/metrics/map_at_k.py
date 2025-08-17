@@ -5,6 +5,8 @@ import os
 import sys
 import time
 
+from typing import Tuple
+
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
@@ -19,7 +21,7 @@ class MapAtK(BaseMetric):
     def __init__(
         self,
         k_values,
-        similarity_fn=(cosine_similarity, 'similarity'),
+        similarity_fn: Tuple[callable, str],
         **kwargs,
     ):
         """

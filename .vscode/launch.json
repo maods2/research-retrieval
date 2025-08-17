@@ -13,7 +13,7 @@
             "console": "integratedTerminal",
             "args": [
                     "--config",
-                    "${workspaceFolder}/configs/ovarian-cancer/resnet_fsl.yml",
+                    "${workspaceFolder}/configs/templates/default_train.yaml",
                     "--pipeline",
                     "train"
                 ]

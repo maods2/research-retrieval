@@ -1,5 +1,6 @@
 from factories.dataset_factory import get_dataloader
 from factories.evaluation_factory import get_eval_function
+from factories.metric_factory import get_metrics
 from factories.model_factory import get_model
 from factories.transform_factory import get_transforms
 from schemas.evaluation_context import EvaluationContext
@@ -17,6 +18,7 @@ def setup_test_components(config) -> EvaluationContext:
         config, transforms_eval, transforms_eval
     )
     eval_fn = get_eval_function(config['evaluation'])
+    metrics = get_metrics(config)
 
     return EvaluationContext(
         logger=logger,
@@ -25,6 +27,7 @@ def setup_test_components(config) -> EvaluationContext:
         train_loader=train_loader,
         eval_loader=eval_loader,
         eval_fn=eval_fn,
+        metrics=metrics,
         config=config,
     )
 

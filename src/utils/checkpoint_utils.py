@@ -61,6 +61,7 @@ def save_checkpoint(
     os.makedirs(os.path.dirname(filepath), exist_ok=True)
     torch.save(checkpoint, filepath)
     print(f'Checkpoint saved at {filepath}')
+    config['model']['checkpoint_path'] = filepath
     return filepath
 
 
