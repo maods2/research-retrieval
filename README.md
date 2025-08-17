@@ -31,26 +31,21 @@ The framework organizes experiment configuration into three template types: **da
 
 #### Generating Experiment Configurations
 
-To generate experiment configuration files, use the `config_template_builder.py` script. In the `main()` function, specify the combinations of datasets, models, and training pipelines for which you want to generate configs. For example:
+To generate experiment configuration files, use the `config_template_builder.py` script. In the `main()` function, define your experiments as a list of tuples, where each tuple specifies a combination of model and dataset parameters. For example:
 
 ```python
 def main():
-    # List of datasets: (dataset_name, dataset_template)
-    datasets = [
-        ('skin-cancer', 'skin-cancer'),
-    ]
-
-    # List of models: (model_code, model_name, pipeline_type, model_template)
-    models = [
-        ("resnet", "resnet", "default_trainer", "00-default"),
-        ("dino", "dino", "default_trainer", "00-default"),
-        # Add more models as needed
-    ]
-
-    # ...
+  # Define assets (extend as needed)
+  experiments = [
+    # (model_code, model_name, pipeline_type, model_template, dataset_name, dataset_template)
+    ("resnet", "resnet", "default_trainer", "00-default", "skin-cancer", "skin-cancer"),
+    # ("dino", "dino", "default_trainer", "00-default", "skin-cancer", "skin-cancer"),
+    # ("dinov2", "dinov2", "default_trainer", "00-default", "skin-cancer", "skin-cancer"),
+  ]
+  # ...
 ```
 
-Edit the `datasets` and `models` lists to match your experiment requirements. The script will automatically generate configuration files for all specified combinations, making it easy to scale and manage experiments.
+Edit the `experiments` list to match your desired combinations. The script will generate configuration files for each experiment, making it easy to manage and scale your research workflows.
 
 #### Field Definitions
 
