@@ -9,17 +9,25 @@ CONFIG ?= default_train_config.yaml
 train:
 	python3 src/main.py --config configs/$(CONFIG) --pipeline train
 
+# ============================
+# Evaluation Targets
+# ============================
+eval:
+	python3 src/main.py --config configs/$(CONFIG) --pipeline eval
+
+# ============================
+# Training All Models on All Datasets	
+# ============================
 
 train-all-models:
-	datasets="skin-cancer-splitted"; \
+	datasets="skin-cancer glomerulo"; \
 	models="phikon-v2_fsl"; \
 	for dataset in $$datasets; do \
 		for model in $$models; do \
 			echo "Training on $$dataset with $$model"; \
-			python3 src/main.py --config configs/$$dataset/retr_fsl_train_test/$$model\_config.yaml --pipeline train; \
+			python3 src/main.py --config configs/$$dataset/$$model\_config.yaml --pipeline train; \
 		done; \
 	done
-
 
 # ============================
 # Download Datasets
@@ -88,5 +96,4 @@ lint-diff:
 clean:
 	find . -type d -name "__pycache__" ! -path "./env_tcc_eeg/*" -exec rm -rv {} \;
 
-eval:
-	python3 src/main.py --config configs/$(CONFIG) --pipeline eval
+

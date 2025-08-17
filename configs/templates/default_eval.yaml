@@ -1,0 +1,59 @@
+data:
+  dataset_type: FewShotFolderDataset
+  train_dir: data/ovarian-cancer/train
+  test_dir: data/ovarian-cancer/test
+  class_mapping: {Clear_Cell: 0, Endometri: 1, Mucinous: 2, Non_Cancerous: 3, 
+      Serous: 4}
+  batch_size_train: 1
+  batch_size_eval: 64
+  num_workers: 3
+  suffle_train: true
+  suffle_test: false
+model: {num_classes: 5, model_code: resnet_fsl, model_name: resnet18, 
+    experiment_name: resnet_fsl_ovarian-cancer-fsl-eval, pretrained: true, 
+    load_checkpoint: false, checkpoint_path: '', freeze_params: true, 
+    encoder_dim: 2048, decoder_channels: 2048, n_way: 5, k_shot: 5, q_queries: 6,
+  k_queries: 128, hidden_dim: 512, embedding_dim: 128}
+transform:
+  train:
+    resize: [224, 224]
+    horizontal_flip: true
+    color_jitter:
+      brightness: 0.4
+      contrast: 0.4
+      saturation: 0.4
+      hue: 0.1
+      probability: 0.4
+      gaussian_noise:
+        var_limit: [5.0, 30.0]
+        mean: 0.0
+        probability: 0.4
+      gaussian_blur:
+        blur_limit: [3, 7]
+        probability: 0.4
+    random_grayscale: 0.2
+    normalize:
+      mean: [0.485, 0.456, 0.406]
+      std: [0.229, 0.224, 0.225]
+    to_tensor: true
+  test:
+    resize: [224, 224]
+    normalize:
+      mean: [0.485, 0.456, 0.406]
+      std: [0.229, 0.224, 0.225]
+    to_tensor: true
+optimizer: {name: adam, lr: '1e-3', weight_decay: '1e-4'}
+loss: {name: 0}
+evaluation:
+  enabled: true
+  pipeline: retrieval_evaluator
+  load_embeddings: false
+  embeddings_path: ''
+  save_embeddings: true
+  normalize_embeddings: false
+  list_of_metrics:
+  - type: map@k
+    k_values: [1, 3, 6, 9, 12, 15]
+logging: {log_file: ./logs.txt, log_level: INFO}
+metric_logging: {tool: txt}
+output: {results_dir: ./local_experiments/resnet18/ovarian-cancer-fsl-eval}
