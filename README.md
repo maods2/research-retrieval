@@ -52,8 +52,8 @@ Edit the `experiments` list to match your desired combinations. The script will 
 #### Field Definitions
 
 - **datasets**
-  - `dataset_name`: Name of the dataset folder.
-  - `dataset_template`: YAML template containing configuration for the dataset.
+  - `dataset_name`: Folder name used to organize configuration files related to the dataset or its variations.
+  - `dataset_template`: Path to the YAML template that defines dataset-specific configuration, such as file paths, preprocessing steps, and other relevant parameters.
 
 - **models**
   - `model_code`: Identifier used in `model_factory` to select the model.
