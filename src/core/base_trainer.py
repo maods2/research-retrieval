@@ -240,7 +240,6 @@ class BaseTrainer(ABC):
         optimizer,
         train_loader,
         device,
-        log_interval,
         epoch,
     ):
         raise NotImplementedError('Subclasses must implement this method.')

@@ -1,7 +1,7 @@
 from core.base_evaluator import BaseEvaluator
 from core.base_metric import MetricLoggerBase
 from dataloaders.dataset_fewshot import SupportSetDataset
-from pipelines.training_pipes.few_shot_train import FewShotTrain
+from pipelines.training_pipes.few_shot_trainer import FewShotTrain
 from torch.utils.data import DataLoader
 
 import torch

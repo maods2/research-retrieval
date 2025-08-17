@@ -2,7 +2,7 @@ from abc import ABC
 from abc import abstractmethod
 
 
-class MetricBase(ABC):
+class BaseMetric(ABC):
     """
     Base interface for all metrics. All metrics must inherit from this class and implement the required methods.
     """

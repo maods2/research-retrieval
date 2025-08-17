@@ -1,7 +1,7 @@
 data:
   dataset_type: StandardImageDataset    # Specify the dataset type (e.g., terumo, etc.)
-  train_dir: datasets/final/skin-cancer-splitted/train
-  test_dir: datasets/final/skin-cancer-splitted/test
+  train_dir: datasets/ovarian-cancer/train
+  test_dir: datasets/ovarian-cancer/test
   class_mapping: {akiec: 0, bcc: 1, bkl: 2, df: 3, mel: 4, nv: 5, vasc: 6}
   batch_size_train: 64 
   batch_size_eval: 64

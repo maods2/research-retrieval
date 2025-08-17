@@ -3,7 +3,6 @@ from utils.config_loader import load_config
 
 import argparse
 
-eval 
 def main(args):
     config = load_config(args.config)
 

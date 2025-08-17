@@ -1,21 +1,10 @@
-from typing import Dict
-from typing import List
-
+from typing import Dict, List
 import importlib
 
-
-METRIC_REGISTRY = {}
-
-
-def register_metric(name):
-    def decorator(cls):
-        METRIC_REGISTRY[name] = cls
-        return cls
-
-    return decorator
+from core.base_metric import BaseMetric
 
 
-def get_metrics(evaluation_config: Dict) -> List:
+def get_metrics(evaluation_config: Dict) -> List[BaseMetric]:
     """
     Constructs test pipelines based on the provided evaluation configuration.
 
@@ -25,14 +14,14 @@ def get_metrics(evaluation_config: Dict) -> List:
     Returns:
         List: A list of metric pipeline instances.
     """
-    test_pipelines = []
+    metrics = []
 
     for metric_dict in evaluation_config['list_of_metrics']:
         metric_type = metric_dict['type']
         metric_instance = create_metric_instance(metric_type, metric_dict)
-        test_pipelines.append(metric_instance)
+        metrics.append(metric_instance)
 
-    return test_pipelines
+    return metrics
 
 
 def create_metric_instance(metric_type: str, metric_config: Dict):
@@ -48,13 +37,7 @@ def create_metric_instance(metric_type: str, metric_config: Dict):
     """
     # Define the mapping of metric types to their respective module paths
     metric_modules = {
-        'accuracy': 'metrics.accuracy.Accuracy',
-        'f1_score': 'metrics.f1_score.F1Score',
-        'multilabel_accuracy': 'metrics.accuracy.MultilabelAccuracy',
         'map@k': 'metrics.map_at_k.MapAtK',
-        'precision@k': 'metrics.precision_at_k.PrecisionAtK',
-        'recall@k': 'metrics.recall_at_k.RecallAtK',
-        'accuracy@k': 'metrics.accuracy_at_k.AccuracyAtK',
     }
 
     if metric_type not in metric_modules:

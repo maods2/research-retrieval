@@ -1,14 +1,14 @@
 def get_train_function(config):
 
-    if config['training']['pipeline'] == 'train_few_shot_leaning':
-        from pipelines.training_pipes.few_shot_train import FewShotTrain
+    if config['training']['pipeline'] == 'default_trainer':
+        from pipelines.training_pipes.default_trainer import DefaultTrainer
 
-        return FewShotTrain(config)
+        return DefaultTrainer(config)
 
-    elif config['training']['pipeline'] == 'train_mynet':
-        from pipelines.training_pipes.mynet_train import MyNetTrain
+    elif config['training']['pipeline'] == 'fsl_trainer':
+        from pipelines.training_pipes.few_shot_trainer import FewShotTrainer
 
-        return MyNetTrain(config)
+        return FewShotTrainer(config)
 
     else:
         raise ValueError(
