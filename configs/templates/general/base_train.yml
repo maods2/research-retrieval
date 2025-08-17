@@ -1,14 +1,6 @@
-loss:
-  name: mse
-
-optimizer:
-  name: adam
-  lr: 1e-3
-  weight_decay: 1e-4
-
 training:
   pipeline: <pipeline_type>
-  epochs: 1
+  epochs: 2
   early_stopping_patience: 10
   val_retrieval:
     n_db_images: 100

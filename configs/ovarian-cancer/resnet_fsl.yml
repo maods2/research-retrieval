@@ -1,18 +1,19 @@
 data:
-  dataset_type: StandardImageDataset
+  dataset_type: FewShotFolderDataset
   train_dir: data/ovarian-cancer/train
   test_dir: data/ovarian-cancer/test
   class_mapping: {Clear_Cell: 0, Endometri: 1, Mucinous: 2, Non_Cancerous: 3, 
       Serous: 4}
-  batch_size_train: 64
+  batch_size_train: 1
   batch_size_eval: 64
   num_workers: 3
   suffle_train: true
   suffle_test: false
-model: {num_classes: 5, model_code: resnet, model_name: resnet18_classif, 
-    freeze_params: true, encoder_dim: 2048, decoder_channels: 2048, 
-    experiment_name: resnet_ovarian-cancer, pretrained: true, load_checkpoint: 
-    false, checkpoint_path: ''}
+model: {num_classes: 5, model_code: resnet_fsl, model_name: resnet18, 
+    experiment_name: resnet_fsl_ovarian-cancer, pretrained: true, 
+    load_checkpoint: false, checkpoint_path: '', freeze_params: true, 
+    encoder_dim: 2048, decoder_channels: 2048, n_way: 5, k_shot: 5, q_queries: 6,
+  k_queries: 128, hidden_dim: 512, embedding_dim: 128}
 transform:
   train:
     resize: [224, 224]
@@ -42,9 +43,9 @@ transform:
       std: [0.229, 0.224, 0.225]
     to_tensor: true
 optimizer: {name: adam, lr: '1e-3', weight_decay: '1e-4'}
-loss: {name: cross_entropy}
+loss: {name: 0}
 training:
-  pipeline: default_trainer
+  pipeline: fsl_trainer
   epochs: 2
   early_stopping_patience: 10
   val_retrieval: {n_db_images: 100, n_query_images: 5, seed: 42}
@@ -60,4 +61,4 @@ evaluation:
     k_values: [1, 3, 6, 9, 12, 15]
 logging: {log_file: ./logs.txt, log_level: INFO}
 metric_logging: {tool: txt}
-output: {results_dir: ./local_experiments/resnet18_classif/ovarian-cancer}
+output: {results_dir: ./local_experiments/resnet18/ovarian-cancer}

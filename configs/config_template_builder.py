@@ -46,7 +46,7 @@ def save_config(config, out_path):
 def generate(experiments):
     for model_code, model_name, pipeline_type, model_template, dataset_name, dataset_template in experiments:
         
-        base_config = 'base_train' if 'trainer' in pipeline_type else 'base_test'
+        base_config = 'base_train' if 'trainer' in pipeline_type else 'base_eval'
         
         base_path = Path(f'configs/templates/general/{base_config}.yml')
         data_path = Path(f'configs/templates/datasets/{dataset_template}.yml')
@@ -70,9 +70,11 @@ def main():
     # Define assets (extend as needed)
 
     experiments = [
-    #   (model_code,        model_name,         pipeline_type,          model_template    dataset_name,   dataset_template)                            )
+    #   (model_code,        model_name,         pipeline_type,          model_template    dataset_name,   dataset_template  )                         
 
-        ("resnet",          "resnet18_classif",   "default_trainer",      "00-default",      "ovarian-cancer",  "ovarian-cancer" ),
+        ("resnet",          "resnet18_classif",  "default_trainer",      "02-resnet-clsf",    "ovarian-cancer",  "ovarian-cancer" ),
+        ("resnet_fsl",      "resnet18",          "fsl_trainer",          "01-few-shot",      "ovarian-cancer",  "ovarian-cancer-fsl" ),
+        ("resnet_fsl",      "resnet18",          "retrieval_evaluator",  "01-few-shot",      "ovarian-cancer-fsl-eval",  "ovarian-cancer-fsl" ),
         
         
         # ("dino",            "dino",             "default_trainer",      "00-default",      "skin-cancer",  "skin-cancer" ),

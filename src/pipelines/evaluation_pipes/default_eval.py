@@ -6,7 +6,7 @@ from utils.embedding_utils import load_or_create_embeddings
 import torch
 
 
-class DefaultEvaluationPipeline(BaseEvaluator):
+class DefaulRetrievaltEvaluator(BaseEvaluator):
     def test(
         self,
         model,

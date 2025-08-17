@@ -88,5 +88,5 @@ lint-diff:
 clean:
 	find . -type d -name "__pycache__" ! -path "./env_tcc_eeg/*" -exec rm -rv {} \;
 
-test:
-	python3 src/main.py --config configs/$(CONFIG) --pipeline test
+eval:
+	python3 src/main.py --config configs/$(CONFIG) --pipeline eval

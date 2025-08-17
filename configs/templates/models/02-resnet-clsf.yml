@@ -9,6 +9,7 @@ model:
   load_checkpoint: false # If true, load the checkpoint specified below
   checkpoint_path: ''
 
+
 optimizer:
   name: adam
   lr: 1e-3

@@ -1,9 +1,9 @@
 data:
-  dataset_type: StandardImageDataset    # Specify the dataset type (e.g., terumo, etc.)
+  dataset_type: FewShotFolderDataset    # Specify the dataset type (e.g., terumo, etc.)
   train_dir: data/ovarian-cancer/train
   test_dir: data/ovarian-cancer/test
   class_mapping: {Clear_Cell: 0, Endometri: 1, Mucinous: 2, Non_Cancerous: 3, Serous: 4}
-  batch_size_train: 64 
+  batch_size_train: 1 # For few-shot learning, aways 1 
   batch_size_eval: 64
   num_workers: 3  # Number of workers to load the data
   suffle_train: true  # Shuffle the training data

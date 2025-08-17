@@ -8,7 +8,7 @@ def main(args):
 
     if args.pipeline == 'train':
         train.train_wrapper(config)
-    elif args.pipeline == 'test':
+    elif args.pipeline == 'eval':
         eval_.eval_wrapper(config)
 
     else:
@@ -26,7 +26,7 @@ if __name__ == '__main__':
         '--pipeline',
         type=str,
         required=True,
-        help='Pipeline to run: train, test',
+        help='Pipeline to run: train, eval',
     )
     args = parser.parse_args()
     main(args)

@@ -7,7 +7,7 @@ from torch.utils.data import DataLoader
 import torch
 
 
-class FSLevaluationPipeline(BaseEvaluator):
+class FSLEvaluator(BaseEvaluator):
     @staticmethod
     def load_support_set_from_loader(config, device='cpu'):
         """
