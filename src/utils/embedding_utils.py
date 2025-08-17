@@ -134,7 +134,9 @@ def create_embeddings_dict(
     )
 
     logger.info('Creating embeddings database from training data...')
-    normalize_embeddings = config['evaluation'].get('normalize_embeddings', False)
+    normalize_embeddings = config['evaluation'].get(
+        'normalize_embeddings', False
+    )
     db_embeddings, db_labels = create_embeddings(
         model,
         train_loader,

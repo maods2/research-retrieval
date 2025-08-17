@@ -1,7 +1,9 @@
-from pipelines import eval as eval_, train
+from pipelines import eval as eval_
+from pipelines import train
 from utils.config_loader import load_config
 
 import argparse
+
 
 def main(args):
     config = load_config(args.config)

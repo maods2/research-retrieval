@@ -90,7 +90,6 @@ class TripletDataset(StandardImageDataset):
         self.transform = transform
 
 
-
 # Example usage
 if __name__ == '__main__':
     from albumentations.pytorch import ToTensorV2

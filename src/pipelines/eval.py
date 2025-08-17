@@ -2,8 +2,8 @@ from core.base_evaluator import BaseEvaluator
 from core.base_metric_logger import BaseMetricLogger
 from dataclasses import dataclass
 from factories.dataset_factory import get_dataloader
-from factories.model_factory import get_model
 from factories.evaluation_factory import get_eval_function
+from factories.model_factory import get_model
 from factories.transform_factory import get_transforms
 from torch.utils.data import DataLoader
 from utils.logger import setup_logger

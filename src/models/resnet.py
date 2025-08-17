@@ -25,6 +25,7 @@ class ResNet18(nn.Module):
         x = self.backbone(x)
         return x
 
+
 class ResNet18Classification(nn.Module):
     def __init__(self, config):
         super(ResNet18Classification, self).__init__()
@@ -40,7 +41,6 @@ class ResNet18Classification(nn.Module):
             for name, param in self.backbone.named_parameters():
                 if not name.startswith('fc'):
                     param.requires_grad = False
-
 
     def forward(self, x):
         x = self.backbone(x)
@@ -94,10 +94,10 @@ class ResNet(nn.Module):
         elif model_name == 'resnet34':
             self.model = ResNet34(model_config)
         elif model_name == 'resnet50':
-            self.model = ResNet50(model_config)    
+            self.model = ResNet50(model_config)
         elif model_name == 'resnet18_classif':
             self.model = ResNet18Classification(model_config)
-            
+
         else:
             raise ValueError(f'Unknown model_name: {model_name}')
 

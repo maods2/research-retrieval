@@ -37,4 +37,3 @@ class DefaulRetrievaltEvaluator(BaseEvaluator):
             )
             logger.info(f'Results for {metric.__class__.__name__}: {results}')
             metric_logger.log_metrics(results)
-

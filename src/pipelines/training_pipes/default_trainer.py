@@ -1,13 +1,16 @@
-import torch
-import numpy as np
+from core.base_metric_logger import BaseMetricLogger
+from core.base_trainer import BaseTrainer
 from torch.nn import functional as F
 from torch.utils.data import DataLoader
 from tqdm import tqdm
-from typing import Any, Callable, Dict, Tuple
-
-from core.base_trainer import BaseTrainer
-from core.base_metric_logger import BaseMetricLogger
+from typing import Any
+from typing import Callable
+from typing import Dict
+from typing import Tuple
 from utils.metrics_utils import compute_metrics
+
+import numpy as np
+import torch
 
 
 class DefaultTrainer(BaseTrainer):
@@ -27,7 +30,7 @@ class DefaultTrainer(BaseTrainer):
         all_preds, all_labels = [], []
 
         with torch.no_grad():
-            for inputs, labels in tqdm(dataloader, desc="Evaluating"):
+            for inputs, labels in tqdm(dataloader, desc='Evaluating'):
                 inputs, labels = inputs.to(device), labels.to(device)
                 outputs = model(inputs)
                 preds = outputs.argmax(dim=1)
@@ -53,16 +56,15 @@ class DefaultTrainer(BaseTrainer):
     ):
         model.train()
         running_loss, running_acc = 0.0, 0.0
-        progress_bar = tqdm(train_loader, desc=f"Epoch {epoch+1}")
+        progress_bar = tqdm(train_loader, desc=f'Epoch {epoch+1}')
 
-        for inputs, labels  in progress_bar:
+        for inputs, labels in progress_bar:
             optimizer.zero_grad()
             inputs, labels = inputs.to(device), labels.to(device)
             outputs = model(inputs)
             loss = loss_fn(outputs, labels)
             _, preds = torch.max(outputs, 1)
             acc = (preds == labels).float().mean().item()
-
 
             loss.backward()
             optimizer.step()
@@ -89,10 +91,12 @@ class DefaultTrainer(BaseTrainer):
         logger,
         metric_logger: BaseMetricLogger,
     ):
-        device = config.get("device", "cuda" if torch.cuda.is_available() else "cpu")
-        epochs = config["training"]["epochs"]
-        min_loss, epochs_no_improve, checkpoint_path = float("inf"), 0, None
-        history = {"loss": [], "acc": [], "acc_val": [], "f1_score_val": []}
+        device = config.get(
+            'device', 'cuda' if torch.cuda.is_available() else 'cpu'
+        )
+        epochs = config['training']['epochs']
+        min_loss, epochs_no_improve, checkpoint_path = float('inf'), 0, None
+        history = {'loss': [], 'acc': [], 'acc_val': [], 'f1_score_val': []}
 
         model.to(device)
         for epoch in range(epochs):
@@ -107,15 +111,24 @@ class DefaultTrainer(BaseTrainer):
 
             metrics = self.evaluate(model, test_loader, device, logger)
 
-            logger.info(f"[Epoch {epoch+1}/{epochs}] Loss: {avg_loss:.4f} | Acc: {avg_acc:.4f}")
-            print(f"[Epoch {epoch+1}/{epochs}] Loss: {avg_loss:.4f} | Acc: {avg_acc:.4f}")
+            logger.info(
+                f'[Epoch {epoch+1}/{epochs}] Loss: {avg_loss:.4f} | Acc: {avg_acc:.4f}'
+            )
+            print(
+                f'[Epoch {epoch+1}/{epochs}] Loss: {avg_loss:.4f} | Acc: {avg_acc:.4f}'
+            )
 
-            history["loss"].append(avg_loss)
-            history["acc"].append(avg_acc)
-            history["acc_val"].append(metrics["accuracy"])
-            history["f1_score_val"].append(metrics["f1_score"])
+            history['loss'].append(avg_loss)
+            history['acc'].append(avg_acc)
+            history['acc_val'].append(metrics['accuracy'])
+            history['f1_score_val'].append(metrics['f1_score'])
 
-            should_stop, min_loss, epochs_no_improve, checkpoint_path = self.save_model_if_best(
+            (
+                should_stop,
+                min_loss,
+                epochs_no_improve,
+                checkpoint_path,
+            ) = self.save_model_if_best(
                 model=model,
                 metric=avg_loss,
                 best_metric=min_loss,
@@ -123,14 +136,18 @@ class DefaultTrainer(BaseTrainer):
                 checkpoint_path=checkpoint_path,
                 config=config,
                 metric_logger=metric_logger,
-                mode="loss",
+                mode='loss',
             )
 
             if should_stop:
-                logger.info(f"Early stopping after {epochs_no_improve} epochs with no improvement.")
-                print(f"Early stopping after {epochs_no_improve} epochs with no improvement.")
+                logger.info(
+                    f'Early stopping after {epochs_no_improve} epochs with no improvement.'
+                )
+                print(
+                    f'Early stopping after {epochs_no_improve} epochs with no improvement.'
+                )
                 break
 
-        history["last_epoch_metrics"] = metrics
-        metric_logger.log_json(history, "train_metrics")
+        history['last_epoch_metrics'] = metrics
+        metric_logger.log_json(history, 'train_metrics')
         return model

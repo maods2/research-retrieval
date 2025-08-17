@@ -43,7 +43,6 @@ def get_dataloader(config, transform_train, transforms_test):
         config=config,  # Additional config for dataset
     )
 
-
     test_dataset = dataset_class(
         root_dir=data_config['test_dir'],  # Directory for evaluation data
         transform=transforms_test,  # Transformations to apply

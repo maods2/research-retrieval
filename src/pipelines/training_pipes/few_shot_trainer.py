@@ -3,7 +3,10 @@ from core.base_trainer import BaseTrainer
 from torch.nn import functional as F
 from torch.utils.data import DataLoader
 from tqdm import tqdm
-from typing import Any, Callable, Dict, Tuple
+from typing import Any
+from typing import Callable
+from typing import Dict
+from typing import Tuple
 from utils.metrics_utils import compute_metrics
 
 import numpy as np

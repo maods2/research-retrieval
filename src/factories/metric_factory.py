@@ -1,7 +1,8 @@
-from typing import Dict, List
-import importlib
-
 from core.base_metric import BaseMetric
+from typing import Dict
+from typing import List
+
+import importlib
 
 
 def get_metrics(evaluation_config: Dict) -> List[BaseMetric]:
@@ -41,7 +42,9 @@ def create_metric_instance(metric_type: str, metric_config: Dict):
     }
 
     if metric_type not in metric_modules:
-        raise ValueError(f"evaluation metric '{metric_type}' is not supported.")
+        raise ValueError(
+            f"evaluation metric '{metric_type}' is not supported."
+        )
 
     # Dynamically import the metric class
     module_path, class_name = metric_modules[metric_type].rsplit('.', 1)

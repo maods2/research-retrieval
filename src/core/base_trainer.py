@@ -79,9 +79,9 @@ class BaseTrainer(ABC):
         This method is used during train to evaluate the model's retrieval performance
         on a sample of the training data. This method might slow down training,
         depending on the number of sample images used for db and query creation.
-        During training, the sample dataloader is created only once, and the 
+        During training, the sample dataloader is created only once, and the
         embeddings can be calculated by epoch or batch depending where the method is called.
-        
+
         Args:
             model: The model to evaluate
             train_loader: DataLoader for training data
