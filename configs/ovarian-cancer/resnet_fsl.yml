@@ -51,7 +51,7 @@ training:
   val_retrieval: {n_db_images: 100, n_query_images: 5, seed: 42}
 evaluation:
   enabled: true
-  pipeline: default
+  pipeline: retrieval_evaluator
   load_embeddings: false
   embeddings_path: ''
   save_embeddings: true

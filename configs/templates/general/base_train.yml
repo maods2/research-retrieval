@@ -9,7 +9,7 @@ training:
 
 evaluation:
   enabled: true
-  pipeline: default # Specify the evaluation pipeline. 'default' for standard image retrieval.
+  pipeline: retrieval_evaluator # Specify the evaluation pipeline. 'retrieval_evaluator' for standard image retrieval.
   load_embeddings: false # Load precomputed embeddings
   embeddings_path: '' # Path to load embeddings if needed
   save_embeddings: true

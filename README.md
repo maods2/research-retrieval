@@ -102,14 +102,15 @@ For reference, see the implementation in `default_trainer.py` for guidance on st
 Use the Makefile for easy experiment management:
 
 ```sh
-make train CONFIG=templates/few_shot/default_train_config.yaml
-make test CONFIG=templates/few_shot/default_train_config.yaml
+make train CONFIG=templates/default_train.yaml
+make eval CONFIG=templates/default_eval.yaml
 ```
 
 Or run directly:
 
 ```sh
-python src/main.py --config configs/templates/few_shot/default_train_config.yaml --pipeline train
+python3 src/main.py --config configs/templates/default_train.yaml --pipeline train
+python3 src/main.py --config configs/templates/default_eval.yaml --pipeline eval
 ```
 
 ## Contributing
