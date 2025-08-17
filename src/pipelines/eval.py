@@ -1,23 +1,10 @@
-from core.base_evaluator import BaseEvaluator
-from core.base_metric_logger import BaseMetricLogger
-from dataclasses import dataclass
 from factories.dataset_factory import get_dataloader
 from factories.evaluation_factory import get_eval_function
 from factories.model_factory import get_model
 from factories.transform_factory import get_transforms
-from torch.utils.data import DataLoader
+from schemas.evaluation_context import EvaluationContext
 from utils.logger import setup_logger
 from utils.metric_logger import setup_metric_logger
-
-
-@dataclass
-class EvaluationContext:
-    logger: any
-    metric_logger: BaseMetricLogger
-    model: any
-    train_loader: DataLoader
-    eval_loader: DataLoader
-    eval_fn: BaseEvaluator
 
 
 def setup_test_components(config) -> EvaluationContext:
@@ -38,21 +25,15 @@ def setup_test_components(config) -> EvaluationContext:
         train_loader=train_loader,
         eval_loader=eval_loader,
         eval_fn=eval_fn,
+        config=config,
     )
 
 
-def run_evaluation(ctx: EvaluationContext, config):
+def run_evaluation(ctx: EvaluationContext):
     ctx.logger.info('Running test...')
-    ctx.eval_fn(
-        ctx.model,
-        ctx.train_loader,
-        ctx.eval_loader,
-        config,
-        ctx.logger,
-        ctx.metric_logger,
-    )
+    ctx.eval_fn(ctx)
 
 
 def eval_wrapper(config):
     ctx = setup_test_components(config)
-    run_evaluation(ctx, config)
+    run_evaluation(ctx)

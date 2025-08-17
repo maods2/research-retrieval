@@ -9,6 +9,7 @@ from typing import Dict
 from typing import List
 from typing import Optional
 from typing import Union
+from schemas.training_context import TrainingContext
 from utils.checkpoint_utils import save_model_and_log_artifact
 from utils.dataloader_utils import create_balanced_db_and_query
 from utils.embedding_utils import load_or_create_embeddings
@@ -219,17 +220,7 @@ class BaseTrainer(ABC):
         )
 
     @abstractmethod
-    def __call__(
-        self,
-        model: torch.nn.Module,
-        loss_fn: callable,
-        optimizer: torch.optim.Optimizer,
-        train_loader: torch.utils.data.DataLoader,
-        test_loader: torch.utils.data.DataLoader,
-        config: dict,
-        logger: callable,
-        metric_logger: BaseMetricLogger,
-    ) -> torch.nn.Module:
+    def __call__(self, ctx: TrainingContext) -> torch.nn.Module:
         raise NotImplementedError('Subclasses must implement this method.')
 
     @abstractmethod

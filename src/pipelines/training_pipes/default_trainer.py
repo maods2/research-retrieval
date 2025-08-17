@@ -7,6 +7,7 @@ from typing import Any
 from typing import Callable
 from typing import Dict
 from typing import Tuple
+from schemas.training_context import TrainingContext
 from utils.metrics_utils import compute_metrics
 
 import numpy as np
@@ -80,38 +81,28 @@ class DefaultTrainer(BaseTrainer):
     # --------------------------
     # Main training loop
     # --------------------------
-    def __call__(
-        self,
-        model,
-        loss_fn,
-        optimizer,
-        train_loader,
-        test_loader,
-        config,
-        logger,
-        metric_logger: BaseMetricLogger,
-    ):
-        device = config.get(
+    def __call__(self, ctx: TrainingContext):      
+        device = ctx.config.get(
             'device', 'cuda' if torch.cuda.is_available() else 'cpu'
         )
-        epochs = config['training']['epochs']
+        epochs = ctx.config['training']['epochs']
         min_loss, epochs_no_improve, checkpoint_path = float('inf'), 0, None
         history = {'loss': [], 'acc': [], 'acc_val': [], 'f1_score_val': []}
 
-        model.to(device)
+        ctx.model.to(device)
         for epoch in range(epochs):
             avg_loss, avg_acc = self.train_one_epoch(
-                model,
-                loss_fn,
-                optimizer,
-                train_loader,
+                ctx.model,
+                ctx.loss_fn,
+                ctx.optimizer,
+                ctx.train_loader,
                 device,
                 epoch,
             )
 
-            metrics = self.evaluate(model, test_loader, device, logger)
+            metrics = self.evaluate(ctx.model, ctx.eval_loader, device, ctx.logger)
 
-            logger.info(
+            ctx.logger.info(
                 f'[Epoch {epoch+1}/{epochs}] Loss: {avg_loss:.4f} | Acc: {avg_acc:.4f}'
             )
             print(
@@ -129,18 +120,18 @@ class DefaultTrainer(BaseTrainer):
                 epochs_no_improve,
                 checkpoint_path,
             ) = self.save_model_if_best(
-                model=model,
+                model=ctx.model,
                 metric=avg_loss,
                 best_metric=min_loss,
                 epochs_without_improvement=epochs_no_improve,
                 checkpoint_path=checkpoint_path,
-                config=config,
-                metric_logger=metric_logger,
+                config=ctx.config,
+                metric_logger=ctx.metric_logger,
                 mode='loss',
             )
 
             if should_stop:
-                logger.info(
+                ctx.logger.info(
                     f'Early stopping after {epochs_no_improve} epochs with no improvement.'
                 )
                 print(
@@ -149,5 +140,5 @@ class DefaultTrainer(BaseTrainer):
                 break
 
         history['last_epoch_metrics'] = metrics
-        metric_logger.log_json(history, 'train_metrics')
-        return model
+        ctx.metric_logger.log_json(history, 'train_metrics')
+        return ctx.model
