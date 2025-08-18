@@ -6,9 +6,8 @@ sys.path.append(
     os.path.abspath(os.path.join(os.path.dirname(__file__), '../../'))
 )
 
+import pathology_foundation_models as pfm
 
-from src.models.dino import DINO
-from src.models.dino import DINOv2
 from src.models.fsl_models import DinoFsl
 from src.models.fsl_models import DINOv2Fsl
 from src.models.fsl_models import PhikonFsl
@@ -16,10 +15,9 @@ from src.models.fsl_models import ResNetFsl
 from src.models.fsl_models import UNIFsl
 from src.models.fsl_models import Virchow2Fsl
 from src.models.fsl_models import ViTFsl
-from src.models.phikon import Phikon
+from src.models.dino import DINO
+from src.models.dino import DINOv2
 from src.models.resnet import ResNet
-from src.models.uni import UNI
-from src.models.virchow2 import Virchow2
 from src.models.vit import ViT
 from src.utils.checkpoint_utils import load_checkpoint
 
@@ -27,7 +25,11 @@ from src.utils.checkpoint_utils import load_checkpoint
 def get_model(model_config):
     model_code = model_config.get('model_code').lower()
 
-    if model_code == 'resnet':
+    # HACK: Transition solution
+    if model_code.upper() in pfm.models.FoundationModelEnum.__members__.keys():
+        model = pfm.models.load_foundation_model(model_type=model_code)
+
+    elif model_code == 'resnet':
         model = ResNet(model_config)
 
     elif model_code == 'dino':
@@ -38,21 +40,6 @@ def get_model(model_config):
 
     elif model_code == 'vit':
         model = ViT(model_name=model_config['model_name'])
-
-    elif model_code == 'uni':   # Pathology Foundation Model
-        model = UNI(model_name=model_config['model_name'])
-
-    elif model_code == 'UNI2-h':   # Pathology Foundation Model
-        model = UNI(model_name=model_config['model_name'])
-
-    elif model_code == 'virchow2':   # Pathology Foundation Model
-        model = Virchow2(model_name=model_config['model_name'])
-
-    elif model_code == 'phikon':   # Pathology Foundation Model
-        model = Phikon(model_name=model_config['model_name'])
-
-    elif model_code == 'phikon-v2':   # Pathology Foundation Model
-        model = Phikon(model_name=model_config['model_name'])
 
     ################### Few-Shot Learning Models ######################################
 
