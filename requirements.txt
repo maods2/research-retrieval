@@ -196,3 +196,4 @@ timm
 toml
 gdown
 ruamel.yaml==0.18.14
+pathology_foundation_models

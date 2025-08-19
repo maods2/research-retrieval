@@ -1,13 +1,15 @@
 data:
   dataset_type: StandardImageDataset
-  train_dir: data/final/glomerulo/train
-  test_dir: data/final/glomerulo/test
-  class_mapping: {Crescent: 0, Hypercellularity: 1, Membranous: 2, Normal: 3, Podocytopathy: 4, Sclerosis: 5}
+  train_dir: /datasets/terumo-data-jpeg/
+  class_mapping: {Crescent: 0, Hypercelularidade: 1, Membranous: 2, Normal: 3, Podocitopatia: 4, Sclerosis: 5}
   batch_size_train: 64 
   batch_size_eval: 64
   num_workers: 3  # Number of workers to load the data
   suffle_train: true  # Shuffle the training data
   suffle_test: false # Shuffle the test data
+  train_test_split: 0.2 # Split data into 80% training and 20% testing
+  train_val_split: 0.1 # Use 10% of training data as validation
+  shuffle_seed: 2025
   
 transform:
   train:
