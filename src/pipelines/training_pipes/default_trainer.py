@@ -26,7 +26,7 @@ class DefaultTrainer(BaseTrainer):
         logger: Callable = None,
     ) -> Dict[str, Any]:
         """Evaluate the model on the given dataloader."""
-        model.eval()
+        model.eval().to(device)
         all_preds, all_labels = [], []
 
         with torch.no_grad():
@@ -54,7 +54,7 @@ class DefaultTrainer(BaseTrainer):
         device,
         epoch,
     ):
-        model.train()
+        model.train().to(device)
         running_loss, running_acc = 0.0, 0.0
         progress_bar = tqdm(train_loader, desc=f'Epoch {epoch+1}')
 
