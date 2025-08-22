@@ -1,10 +1,12 @@
 import os
 import sys
-
+from typing import Optional
 
 sys.path.append(
     os.path.abspath(os.path.join(os.path.dirname(__file__), '../../'))
 )
+
+
 
 import pathology_foundation_models as pfm
 
@@ -22,12 +24,12 @@ from src.models.vit import ViT
 from src.utils.checkpoint_utils import load_checkpoint
 
 
-def get_model(model_config):
+def get_model(model_config, hf_token: Optional[str] = None):
     model_code = model_config.get('model_code').lower()
 
     # HACK: Transition solution
-    if model_code.upper() in pfm.models.FoundationModelEnum.__members__.keys():
-        model = pfm.models.load_foundation_model(model_type=model_code)
+    if pfm.models.is_model_available(model_str=model_code):
+        model = pfm.models.load_foundation_model(model_type=model_code, token=hf_token)
 
     elif model_code == 'resnet':
         model = ResNet(model_config)

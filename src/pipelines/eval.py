@@ -7,13 +7,14 @@ from schemas.evaluation_context import EvaluationContext
 from utils.logger import setup_logger
 from utils.metric_logger import setup_metric_logger
 
+from utils.auth_utils import get_hf_token
 
 def setup_test_components(config) -> EvaluationContext:
     logger = setup_logger(config)
     metric_logger = setup_metric_logger(config)
 
     transforms_eval = get_transforms(config['transform'].get('test', None))
-    model = get_model(config['model'])
+    model = get_model(config['model'], hf_token=get_hf_token())
     train_loader, eval_loader = get_dataloader(
         config, transforms_eval, transforms_eval
     )

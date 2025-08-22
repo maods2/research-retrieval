@@ -9,6 +9,7 @@ from factories.transform_factory import get_transforms
 from schemas.training_context import TrainingContext
 from utils.logger import setup_logger
 from utils.metric_logger import setup_metric_logger
+from utils.auth_utils import get_hf_token
 
 
 def setup_components(config) -> TrainingContext:
@@ -24,7 +25,8 @@ def setup_components(config) -> TrainingContext:
         model=get_model(config['model']),
         loss_fn=get_loss(config['loss']),
         optimizer=get_optimizer(
-            config['optimizer'], get_model(config['model'])
+            optimizer_config=config['optimizer'], 
+            model=get_model(config['model'], hf_token=get_hf_token())
         ),
         train_loader=train_loader,
         eval_loader=eval_loader,
