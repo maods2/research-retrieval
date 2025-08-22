@@ -5,6 +5,8 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 import numpy as np
 import albumentations as A
 from albumentations.pytorch import ToTensorV2
+
+import torch
 from torch.utils.data import DataLoader
 
 from src.dataloaders import (
@@ -56,6 +58,43 @@ def test_standardimagedataset():
     for images, labels in train_loader:
         print(images.shape, labels.shape)
         break
+
+def test_train_test_disjunctiveness():
+    root_dir = '/datasets/terumo-data-jpeg'
+    # Create the dataset
+    dataset = StandardImageDataset(
+        root_dir=root_dir,
+        transform=TRANSFORMS,
+        class_mapping=CUSTOM_MAPPING,
+        test_split=0.2,
+        val_split=0.1,
+        shuffle_generator=np.random.default_rng(seed=1)
+    )
+
+    train_loader = DataLoader(
+        dataset.train(),
+        batch_size=32,
+        shuffle=False,
+        num_workers=3,
+        pin_memory=True,
+    )
+    
+    test_loader = DataLoader(
+        dataset.test(),
+        batch_size=32,
+        shuffle=False,
+        num_workers=3,
+        pin_memory=True,
+    )
+
+    train_x, train_y = next(iter(train_loader))
+    test_x, test_y   = next(iter(test_loader))
+
+    print("train:", train_x.shape, train_y.shape)
+    print("test:", test_x.shape, test_y.shape)
+
+    assert not torch.equal(train_x, test_x), f'this tensor is from {'train_x' if train_x in dataset.train() else 'test_x'}'
+    assert not torch.equal(train_y, test_y), f'this tensor is from {'train_y' if train_y in dataset.train() else 'test_y'}'
 
 def test_fewshot_dataset():
     root_dir = '/datasets/glomerulus-split/'
