@@ -108,14 +108,14 @@ def test_fewshot_dataset():
         config=config,
     )
     train_loader = DataLoader(
-        dataset,
+        dataset.train(),
         batch_size=1,
         shuffle=False,
         num_workers=3,
         pin_memory=True,
     )
     test_loader = DataLoader( #TODO: Make it use test subset provided by super class. 
-        dataset,
+        dataset.test(),
         batch_size=36,
         shuffle=False,
         num_workers=3,

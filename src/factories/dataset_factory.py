@@ -45,7 +45,7 @@ def get_dataloader(config, transform_train, transforms_test):
 
     # Create DataLoader instances for both datasets
     train_loader = DataLoader(
-        dataset.train(),
+        dataset.train(transform=transform_train),
         batch_size=data_config['batch_size_train'],  # Define the batch size
         shuffle=data_config.get('suffle_train', True),  # Shuffle for training
         num_workers=data_config[
@@ -60,7 +60,7 @@ def get_dataloader(config, transform_train, transforms_test):
 
     dataset.test()
     test_loader = DataLoader(
-        dataset.test(),
+        dataset.test(transform=transforms_test),
         batch_size=batch_size_eval,  # Define the batch size
         shuffle=data_config.get(
             'suffle_test', False
