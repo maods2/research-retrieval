@@ -5,43 +5,49 @@ from typing import *
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
 from pathlib import Path
-from torch.utils.data import Dataset
 
 import cv2
-import numpy as np
-import time
 import torch
-from sklearn.model_selection import train_test_split
+import numpy as np
+
 
 # I feel like I overcomplicated a bit, this may not the best solution.
 # Perhaps keeping train/test/val sets separate may be the best approach,
 # but this approach with views may allow for easier partitioning of the dataset.
-class DatasetView(Dataset):
-    def __init__(self, std_img_dataset, subset: str, transform: Optional[Callable] = None):
-        self.parent = std_img_dataset
-        self.subset = subset
+class DatasetView(torch.utils.data.Dataset):
+    def __init__(
+        self, 
+        parent_dataset,
+        idxs: list[int],
+        transform: Optional[Callable] = None
+    ):
+        self.parent = parent_dataset
+        self.idxs = idxs
         self.transform = transform
-        assert self.subset in self.parent.subsets.keys(), f"SUBSET: {self.subset}, AVAILABLE: {self.parent.subsets.keys()}"
+
+    def set_transform(self, new_transform: Callable):
+        self.transform = new_transform
         
-    def __len__(self):
-        return len(self.parent.subsets[self.subset])
+    def __len__(self) -> int:
+        return len(self.idxs)
             
     def __getitem__(self, idx):
-        translated_idx = self.parent.subsets[self.subset][idx]
-        img, lbl = self.parent[translated_idx]
-        img = self.transform(image=img)['image'] if self.transform is not None else img
-        return img, lbl
+        out = self.parent[self.idxs[idx]]
+        if self.transform is not None:
+            out[0] = self.transform(image=out[0])['image']
+        return out
 
-class StandardImageDataset(Dataset):
+class StandardImageDataset(torch.utils.data.Dataset):
     def __init__(
         self,
         root_dir: str,
-        transform: Optional[Callable] = None,
         return_one_hot: bool = False,
-        config: Optional[dict[str, Any]] = None, 
-        class_mapping: Optional[dict[str, int]] = None,
-        test_split: Optional[float] = None,
         val_split: Optional[float] = None,
+        test_split: Optional[float] = None,
+        config: Optional[dict[str, Any]] = None, 
+        test_transform: Optional[Callable] = None,
+        train_transform: Optional[Callable] = None,
+        class_mapping: Optional[dict[str, int]] = None,
         shuffle_generator: Optional[np.random.Generator] = None,
     ):
         """
@@ -49,13 +55,23 @@ class StandardImageDataset(Dataset):
 
         Args:
             root_dir (str): Root directory containing class subdirectories.
-            transform (dict): Image transformations to be applied to samples.
-            return_one_hot (bool): Returns labels as a one-hot encoded vector. Default: False.
-            class_mapping (dict, optional): Custom mapping for classes.
-                                            If None, it will be automatically created based on folder names.
+            return_one_hot (bool, optional): Returns labels as a one-hot encoded vector. Default: False.
+            test_split (float, optional): Percentage of samples to be used for testing. If none,
+                                          won't split into train/test. Default: None.
+            val_split  (float, optional): Percentage of training samples to be used for validation. If none,
+                                          won't split into train/val. Default: None.
+            train_transform (callable, optional): Image transformations to be applied to training samples. 
+                                          Default: None.
+            test_transform (callable, optional): Image transformations to be applied to test/validation samples.
+                                          Default: None.
+            class_mapping (dict, optional): Custom mapping for classes. If none, it will be automatically
+                                            created based on folder names. Default: None.
+            shuffle_generator (np.random.Generator, optional): Generator to be used for shuffling the dataset
+                                            samples. If none, won't shuffle. Default: None.
         """
         self.root_dir = Path(root_dir)
-        self.transform = transform
+        self.train_transform = train_transform
+        self.test_transform = test_transform
         self.image_paths = []       # List of full paths to images
         self.labels = []            # List of integer labels
         self.one_hot_labels = []    # List of one-hot encoded labels
@@ -66,28 +82,39 @@ class StandardImageDataset(Dataset):
         self.test_split = test_split
         self.val_split  = val_split
         if config is not None:
-            if self.test_split is None and 'train_test_split' in config['data'].keys():
-                self.test_split = config['data']['train_test_split']
-            if self.val_split is None and 'train_val_split' in config['data'].keys():
-                self.val_split = config['data']['train_val_split']
+            if 'data' in config.keys():
+                if self.test_split is None and 'train_test_split' in config['data'].keys():
+                    self.test_split = config['data']['train_test_split']
+                if self.val_split is None and 'train_val_split' in config['data'].keys():
+                    self.val_split = config['data']['train_val_split']
+            else:
+                print("[WARNING] 'data' not found in config file, skipping dataset splitting.")
 
-        self.subsets = {} # maps subset names (train, test, val) to a list of self.image_paths/self.labels indices.
+        self.subsets: dict[str, DatasetView] = {} # maps subset names (train, test, val) to DatasetView obj.
 
-        #### Load train/test/val folders if both_test_split
         #TODO: Maybe make this a bit more flexible, e.g. load train/test from folders and dynamically split train/val. 
         #TODO: Maybe support dynamic creation of subsets from folders?
+        #### Load train/test/val folders individually 
         if 'train' in os.listdir(self.root_dir):
             print("Detected `train` folder in dir. Loading subsets (train/test/val) based on folder structure.")
             self._load_data_from_dir(self.root_dir / 'train', class_mapping=class_mapping)
-            self.subsets['train'] = np.arange(len(self.image_paths))
+            self.subsets['train'] = self.create_view(
+                idxs=np.arange(len(self.image_paths)),
+                transform=self.train_transform
+            )
 
-            self.val_idxs = []
             if (self.root_dir / 'val').exists():
                 self._load_data_from_dir(self.root_dir / 'val', class_mapping=class_mapping)
-                self.subsets['val'] = np.arange(start=len(self.subsets['train']), stop=len(self.image_paths))
+                self.subsets['val'] = self.create_view(
+                    idxs=np.arange(start=len(self.subsets['train']), stop=len(self.image_paths)),
+                    transform=self.test_transform
+                )
 
             self._load_data_from_dir(self.root_dir / 'test', class_mapping=class_mapping)
-            self.subsets['test'] = np.arange(start=len(self.subsets['train'])+len(self.val_idxs), stop=len(self.image_paths))
+            self.subsets['test'] = self.create_view(
+                idxs=np.arange(start=len(self.subsets['train'])+(len(self.subsets['val']) if 'val' in self.subsets.keys() else 0), stop=len(self.image_paths)),
+                transform=self.test_transform
+            )
 
         else: ##### Dynamic train/test/val splitting
             print("`train` folder not found in specified directory. Loading images and splitting " \
@@ -100,8 +127,6 @@ class StandardImageDataset(Dataset):
                 val_split=self.val_split,
                 shuffle_generator=self.shuffle_generator,
             )
-    
-
 
     def split_into_subsets(
         self, 
@@ -120,16 +145,30 @@ class StandardImageDataset(Dataset):
             # train/test split
             if test_split is not None:
                 train_split = int(np.floor((1-test_split)*idxs.size))
-                self.subsets['train'], self.subsets['test'] = idxs[:train_split], idxs[train_split:]
-                print(f"Cut dataset into {train_split*100}% training images ({len(self.subsets['train'])} samples)",
-                      f"and {test_split*100}% test images ({len(self.subsets['test'])}).")
+                self.subsets['test']  = self.create_view(
+                    idxs=idxs[train_split:],
+                    transform=self.test_transform
+                )
+                self.subsets['train'] = self.create_view(
+                    idxs=idxs[:train_split],
+                    transform=self.train_transform
+                )
+                print(f"Cut dataset ({len(idxs)} samples) into {train_split*100/len(idxs):.1f}% training images ({len(self.subsets['train'])} samples)",
+                      f"and {len(self.subsets['test'])*100/len(idxs):.1f}% test images ({len(self.subsets['test'])} samples).")
 
             # train/val split
             if val_split is not None:
-                train_split = int(np.floor((1-val_split)*self.subsets['train'].size))
-                self.subsets['train'], self.subsets['val'] = self.subsets['train'][:train_split], self.subsets['train'][train_split:]
-                print(f"Cut dataset into {train_split*100}% training images ({len(self.subsets['train'])} samples)",
-                      f"and {val_split*100}% test images ({len(self.subsets['val'])}).")
+                train_split = int(np.floor((1-val_split)*len(self.subsets['train'])))
+                self.subsets['val']   = self.create_view(
+                    idxs=self.subsets['train'].idxs[train_split:],
+                    transform=self.test_transform
+                )
+                self.subsets['train'] = self.create_view(
+                    idxs=self.subsets['train'].idxs[:train_split],
+                    transform=self.train_transform
+                )
+                print(f"Cut training set ({len(idxs)} samples) into {len(self.subsets['train'])*100/(len(self.subsets['train']+self.subsets['val'])):.1f}% training images ({len(self.subsets['train'])} samples)",
+                      f"and {len(self.subsets['val'])*100/(len(self.subsets['train']+self.subsets['val'])):.1f}% validation images ({len(self.subsets['val'])} samples).")
 
     def _load_data_from_dir(self, root_dir: Path, class_mapping: Optional[dict]):
 
@@ -204,11 +243,11 @@ class StandardImageDataset(Dataset):
                 self.one_hot_labels.append(one_hot_label)
                 self.labels_str.append(class_name)
 
-    def __len__(self):
+    def __len__(self) -> int:
         # Return the total number of samples in the dataset
         return len(self.image_paths)
 
-    def __getitem__(self, idx):
+    def __getitem__(self, idx: int):
         """
         Returns an image and its corresponding label.
 
@@ -235,35 +274,31 @@ class StandardImageDataset(Dataset):
 
         return image, label
 
-    def get_subset(self, subset: str, transform: Optional[Callable] = None) -> DatasetView:
-        return DatasetView(std_img_dataset=self, subset=subset, transform=transform)
-
-    def train(self, transform: Optional[Callable] = None) -> DatasetView:
-        return self.get_subset(
-            subset='train', 
-            transform=transform,
+    def create_view(self, idxs: list[int], transform: Optional[Callable] = None) -> DatasetView:
+        return DatasetView(
+            parent_dataset=self,
+            idxs=idxs,
+            transform=transform
         )
 
-    def test(self, transform: Optional[Callable] = None) -> DatasetView:
-        return self.get_subset(
-            subset='test', 
-            transform=transform,
-        )
+    def train(self) -> DatasetView:
+        return self.subsets['train']
 
-    def validation(self, transform: Optional[Callable] = None) -> DatasetView:
-        return self.get_subset(
-            subset='val', 
-            transform=transform,
-        )
+    def test(self) -> DatasetView:
+        return self.subsets['test']
 
-    def set_train_transform(self, transform):
+    def validation(self) -> DatasetView:
+        return self.subsets['val']
+
+    def set_train_transform(self, transform: Callable):
         """
         override the base class method to set a new train transform.
         """
-        self.train_transform = transform
+        self.subsets['train'].set_transform(transform)
 
-    def set_test_transform(self, transform):
+    def set_test_transform(self, transform: Callable):
         """
         override the base class method to set a new test transform.
         """
-        self.test_transform = transform
+        self.subsets['test'].set_transform(transform)
+        self.subsets['val'].set_transform(transform)

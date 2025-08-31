@@ -19,7 +19,7 @@ class TripletDataset(StandardImageDataset):
         self.transform = transform if transform else A.Compose([A.ToFloat()])
         super().__init__(
             root_dir=root_dir,
-            transform=transform,
+            train_transform=transform,
             class_mapping=class_mapping
         )
 

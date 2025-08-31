@@ -24,7 +24,7 @@ class ContrastiveDataset(StandardImageDataset):
     ):
         super().__init__(
             root_dir=root_dir, 
-            transform=None, 
+            train_transform=None, 
             class_mapping=class_mapping, 
             config=config
         )

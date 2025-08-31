@@ -30,7 +30,7 @@ class FewShotFolderDataset(StandardImageDataset):
         """ """
         super(FewShotFolderDataset, self).__init__(
             root_dir=root_dir, 
-            transform=transform, 
+            train_transform=transform, 
             class_mapping=class_mapping, 
             config=config
         )

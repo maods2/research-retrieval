@@ -39,7 +39,8 @@ def test_standardimagedataset():
     # Create the dataset
     dataset = StandardImageDataset(
         root_dir=root_dir,
-        transform=TRANSFORMS,
+        train_transform=TRANSFORMS,
+        test_transform=TRANSFORMS,
         class_mapping=CUSTOM_MAPPING,
         test_split=0.2,
         val_split=0.1,
@@ -47,7 +48,7 @@ def test_standardimagedataset():
     )
 
     train_loader = DataLoader(
-        dataset,
+        dataset.train(),
         batch_size=32,
         shuffle=False,
         num_workers=3,
@@ -64,7 +65,8 @@ def test_train_test_disjunctiveness():
     # Create the dataset
     dataset = StandardImageDataset(
         root_dir=root_dir,
-        transform=TRANSFORMS,
+        train_transform=TRANSFORMS,
+        test_transform=TRANSFORMS,
         class_mapping=CUSTOM_MAPPING,
         test_split=0.2,
         val_split=0.1,
