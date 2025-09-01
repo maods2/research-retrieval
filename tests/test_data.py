@@ -23,6 +23,7 @@ TRANSFORMS = A.Compose(
         A.RandomBrightnessContrast(p=0.2),
         A.Normalize(mean=(0.5, 0.5, 0.5), std=(0.5, 0.5, 0.5)),
         ToTensorV2(),
+        
     ]
 )
 CUSTOM_MAPPING = {
@@ -74,7 +75,7 @@ def test_train_test_disjunctiveness():
     )
 
     train_loader = DataLoader(
-        dataset.train(),
+        dataset=dataset.train(),
         batch_size=32,
         shuffle=False,
         num_workers=3,
@@ -82,7 +83,7 @@ def test_train_test_disjunctiveness():
     )
     
     test_loader = DataLoader(
-        dataset.test(),
+        dataset=dataset.test(),
         batch_size=32,
         shuffle=False,
         num_workers=3,
@@ -105,19 +106,19 @@ def test_fewshot_dataset():
     # Create the dataset
     dataset = FewShotFolderDataset(
         root_dir=root_dir,
-        transform=TRANSFORMS,
+        train_transform=TRANSFORMS,
         class_mapping=CUSTOM_MAPPING,
         config=config,
     )
     train_loader = DataLoader(
-        dataset.train(),
+        dataset=dataset,
         batch_size=1,
         shuffle=False,
         num_workers=3,
         pin_memory=True,
     )
     test_loader = DataLoader( #TODO: Make it use test subset provided by super class. 
-        dataset.test(),
+        dataset=dataset,
         batch_size=36,
         shuffle=False,
         num_workers=3,
@@ -128,6 +129,8 @@ def test_fewshot_dataset():
     support, s_lbls, query, q_lbls = next(iter(train_loader))
     print(f'Support shape: {support.shape}, Labels: {s_lbls.shape}')
     print(f'Query shape: {query.shape}, Labels: {q_lbls.shape}')
+
+    assert not torch.equal(support, query)
 
     # test the test loader
     test_loader.dataset.k_shot = 1
@@ -155,7 +158,7 @@ def test_fewshot_dataset():
         break
 def test_triplet_dataset():
     IMAGE_DIR = '/datasets/glomerulus-split'
-    data = TripletDataset(IMAGE_DIR, TRANSFORMS, class_mapping=CUSTOM_MAPPING)
+    data = TripletDataset(root_dir=IMAGE_DIR, train_transform=TRANSFORMS, class_mapping=CUSTOM_MAPPING)
     print('Number of samples:', len(data))
     data_loader = DataLoader(
         data, batch_size=32, shuffle=True
@@ -174,7 +177,7 @@ def test_triplet_dataset():
 
 def test_constrative_dataset():
     IMAGE_DIR = '/datasets/glomerulus-split'
-    data = ContrastiveDataset(IMAGE_DIR, transform=TRANSFORMS, class_mapping=CUSTOM_MAPPING)
+    data = ContrastiveDataset(IMAGE_DIR, train_transform=TRANSFORMS, class_mapping=CUSTOM_MAPPING)
     print('Number of samples:', len(data))
     data_loader = DataLoader(
         data, batch_size=32, shuffle=True

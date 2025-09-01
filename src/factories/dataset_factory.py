@@ -38,14 +38,14 @@ def get_dataloader(config, transform_train, transforms_test):
     # Create dataset instances for training and evaluation
     dataset = dataset_class(
         root_dir=data_config['train_dir'],  # Directory for training data
-        transform=transform_train,  # Transformations to apply
+        train_transform=transform_train,  # Transformations to apply
         class_mapping=data_config['class_mapping'],  # Custom class mappings
         config=config,  # Additional config for dataset
     )
 
     # Create DataLoader instances for both datasets
     train_loader = DataLoader(
-        dataset.train(transform=transform_train),
+        dataset.train(),
         batch_size=data_config['batch_size_train'],  # Define the batch size
         shuffle=data_config.get('suffle_train', True),  # Shuffle for training
         num_workers=data_config[
@@ -58,9 +58,8 @@ def get_dataloader(config, transform_train, transforms_test):
     if batch_size_eval is None:
         batch_size_eval = data_config['batch_size_train']
 
-    dataset.test()
     test_loader = DataLoader(
-        dataset.test(transform=transforms_test),
+        dataset.test(),
         batch_size=batch_size_eval,  # Define the batch size
         shuffle=data_config.get(
             'suffle_test', False

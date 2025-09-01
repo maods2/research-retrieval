@@ -33,9 +33,10 @@ class DatasetView(torch.utils.data.Dataset):
             
     def __getitem__(self, idx):
         out = self.parent[self.idxs[idx]]
+        img = out[0]
         if self.transform is not None:
-            out[0] = self.transform(image=out[0])['image']
-        return out
+            img = self.transform(image=img)['image']
+        return img, *out[1:]
 
 class StandardImageDataset(torch.utils.data.Dataset):
     def __init__(

@@ -24,17 +24,17 @@ class FewShotFolderDataset(StandardImageDataset):
         self, 
         root_dir: str, 
         config: dict[str, Any],
-        transform: Optional[Callable] = None, 
+        train_transform: Optional[Callable] = None, 
         class_mapping: Optional[dict[str, int]] = None, 
     ):
         """ """
         super(FewShotFolderDataset, self).__init__(
             root_dir=root_dir, 
-            train_transform=transform, 
+            train_transform=None, # Passing none because transform is already applied in this class through __getitem__
             class_mapping=class_mapping, 
             config=config
         )
-        self.validation_dataset = None #TODO: Adapt to use the validation subset provided by the super class.
+        self.validation_dataset = None
         self.root_dir = Path(root_dir)
         self.n_way = config['model'].get(
             'n_way', 2
@@ -45,7 +45,7 @@ class FewShotFolderDataset(StandardImageDataset):
         self.q_queries = config['model'].get(
             'q_queries', 6
         )   #  query shots per class
-        self.transform = transform
+        self.transform = train_transform
 
     def __len__(self):
         """
@@ -117,7 +117,6 @@ class FewShotFolderDataset(StandardImageDataset):
         query_imgs, query_lbls = [], []
 
         for cls in selected:
-            print(cls, self.class_mapping[cls], self.image_dict[self.class_mapping[cls]])
             imgs = random.sample(
                 self.image_dict[self.class_mapping[cls]],
                 self.k_shot + self.q_queries,
@@ -183,7 +182,7 @@ class SupportSetDataset(StandardImageDataset):
         else:
             super().__init__(
                 root_dir=self.config['data']['train_dir'],
-                transform=self.transform,
+                train_transform=self.transform,
                 class_mapping=self.class_mapping,
             )
             class_to_path = {
@@ -232,8 +231,8 @@ class SupportSetDataset(StandardImageDataset):
             raise FileNotFoundError(f'Image not found at {img_path}')
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
-        if self.transform:
-            image = self.transform(image=image)['image']
+        if self.train_transform:
+            image = self.train_transform(image=image)['image']
 
         return image, label
 

@@ -18,7 +18,7 @@ class ContrastiveDataset(StandardImageDataset):
     def __init__(
         self, 
         root_dir: str, 
-        transform: Optional[Callable] = None, 
+        train_transform: Optional[Callable] = None, 
         class_mapping: Optional[dict[str, int]] = None, 
         config: Optional[dict[str, Any]] = None
     ):
@@ -28,7 +28,7 @@ class ContrastiveDataset(StandardImageDataset):
             class_mapping=class_mapping, 
             config=config
         )
-        self._transform = transform
+        self._transform = train_transform
         self.validation_dataset = None
 
     def _open_image(self, path):

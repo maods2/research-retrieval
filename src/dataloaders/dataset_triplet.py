@@ -13,13 +13,13 @@ import torch
 
 class TripletDataset(StandardImageDataset):
     def __init__(
-        self, root_dir, transform=None, class_mapping=None, config=None
+        self, root_dir, train_transform=None, class_mapping=None, config=None
     ):
         self.root_dir = Path(root_dir)
-        self.transform = transform if transform else A.Compose([A.ToFloat()])
+        self.transform = train_transform if train_transform else A.Compose([A.ToFloat()])
         super().__init__(
             root_dir=root_dir,
-            train_transform=transform,
+            train_transform=train_transform,
             class_mapping=class_mapping
         )
 
