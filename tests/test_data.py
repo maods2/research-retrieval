@@ -111,14 +111,14 @@ def test_fewshot_dataset():
         config=config,
     )
     train_loader = DataLoader(
-        dataset=dataset,
+        dataset=dataset.train(),
         batch_size=1,
         shuffle=False,
         num_workers=3,
         pin_memory=True,
     )
     test_loader = DataLoader( #TODO: Make it use test subset provided by super class. 
-        dataset=dataset,
+        dataset=dataset.test(),
         batch_size=36,
         shuffle=False,
         num_workers=3,
@@ -135,7 +135,7 @@ def test_fewshot_dataset():
     # test the test loader
     test_loader.dataset.k_shot = 1
     test_loader.dataset.validation_dataset = True
-    query, q_lbls = next(iter(test_loader))
+    _, _, query, q_lbls = next(iter(test_loader))
     print(f'Query shape: {query.shape}, Labels: {q_lbls.shape}')
     print()
 
