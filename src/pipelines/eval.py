@@ -6,7 +6,6 @@ from factories.transform_factory import get_transforms
 from schemas.evaluation_context import EvaluationContext
 from utils.logger import setup_logger
 from utils.metric_logger import setup_metric_logger
-
 from utils.auth_utils import get_hf_token
 
 def setup_test_components(config) -> EvaluationContext:

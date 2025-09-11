@@ -11,7 +11,6 @@ from utils.logger import setup_logger
 from utils.metric_logger import setup_metric_logger
 from utils.auth_utils import get_hf_token
 
-
 def setup_components(config) -> TrainingContext:
     """Initializes and returns all major components based on the config."""
     train_loader, eval_loader = get_dataloader(
