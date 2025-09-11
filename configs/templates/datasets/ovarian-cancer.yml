@@ -6,8 +6,8 @@ data:
   batch_size_train: 64 
   batch_size_eval: 64
   num_workers: 3  # Number of workers to load the data
-  suffle_train: true  # Shuffle the training data
-  suffle_test: false # Shuffle the test data
+  shuffle_train: true  # Shuffle the training data
+  shuffle_test: false # Shuffle the test data
 
 model:
   num_classes: 5

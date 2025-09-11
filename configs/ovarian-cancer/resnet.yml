@@ -7,8 +7,8 @@ data:
   batch_size_train: 64
   batch_size_eval: 64
   num_workers: 3
-  suffle_train: true
-  suffle_test: false
+  shuffle_train: true
+  shuffle_test: false
 model: {num_classes: 5, model_code: resnet, model_name: resnet18_classif, 
     freeze_params: true, encoder_dim: 2048, decoder_channels: 2048, 
     experiment_name: resnet_ovarian-cancer, pretrained: true, load_checkpoint: 
