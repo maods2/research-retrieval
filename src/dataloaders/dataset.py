@@ -45,6 +45,10 @@ class StandardImageDataset(Dataset):
         self.return_one_hot = return_one_hot
         self.shuffle_generator = shuffle_generator
 
+        self.train_idxs = []
+        self.test_idxs  = []
+        self.val_idxs   = []
+
         #### Load train/test/val folders if both_test_split
         #TODO: Maybe make this a bit more flexible, e.g. load train/test from folders and dynamically split train/val. 
         if all(x is None for x in (test_split,val_split)):
