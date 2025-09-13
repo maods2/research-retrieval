@@ -57,6 +57,7 @@ class DatasetEmbedding(StandardImageDataset):
                 num_workers=num_workers,
                 display_progress=True   
             )
+            self.data.save(dataset_fpath)
 
         assert self.data is not None, "Unreachable."
 
