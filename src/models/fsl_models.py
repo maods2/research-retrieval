@@ -4,13 +4,13 @@ https://github.com/mahmoodlab/UNI
 https://www.nature.com/articles/s41591-024-02857-3.epdf?sharing_token=CzM2TCW_6hilYJ6BCMgx5dRgN0jAjWel9jnR3ZoTv0PwDLGHgijc_t52lQyxVvw552KDCUhMbS4KuO_rvLnP6S1BpmIj9puojkF8lfR5R8uEX08B0FxePgIH0t7DovKvZF4NHQKlq4TZHGAA1wEIdkYKvcr8nUsaa-nNYbNw3JI%3D
 """
 
-from src.models.dino import DINO
-from src.models.dino import DINOv2
-from src.models.phikon import Phikon
-from src.models.resnet import ResNet
-from src.models.uni import UNI
-from src.models.virchow2 import Virchow2
-from src.models.vit import ViT
+from models.dino import DINO
+from models.dino import DINOv2
+from models.phikon import Phikon
+from models.resnet import ResNet
+from models.uni import UNI
+from models.virchow2 import Virchow2
+from models.vit import ViT
 from torch import Tensor
 
 import os

@@ -1,4 +1,4 @@
-from src.core.base_model import BaseModel
+from core.base_model import BaseModel
 
 import torch
 import torch.nn as nn
@@ -6,7 +6,7 @@ import torch.nn as nn
 
 # Local registry to avoid circular import
 try:
-    from src.factories.model_factory import register_model
+    from factories.model_factory import register_model
 except ImportError:
     register_model = lambda name: (lambda cls: cls)
 

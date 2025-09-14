@@ -10,37 +10,10 @@ from dataloaders.dataset import StandardImageDataset
 from dataloaders.dataset_contrastive import ContrastiveDataset
 from dataloaders.dataset_fewshot import FewShotFolderDataset
 from dataloaders.dataset_triplet import TripletDataset
-from src.utils.auth_utils import get_hf_token
+from dataloaders.dataset_embedding import EmbeddingDataset
 
-def get_embedding_dataset(config: dict, transform_train, transform_test):
-    new_cfg = config.copy()
-    new_cfg['data']['dataset_type'] = 'StandardImageDataset'
-    train_img_set, test_img_set = get_dataset(new_cfg, transform_train, transform_test)
-    del new_cfg
-
-    train_embed_dataset = pfm.dataset.EmbeddingCache.init_from_image_dataset(
-        image_dataset = train_img_set,
-        model = pfm.models.load_foundation_model(
-            model_type = config['model']['model_name'],
-            device = 'cuda' if torch.cuda.is_available() else 'cpu', 
-            token = get_hf_token()
-        ),
-        batch_size = config['data']['batch_size_train'],
-        num_workers = config['data']['num_workers']
-    )
-
-    test_embed_dataset = pfm.dataset.EmbeddingCache.init_from_image_dataset(
-        image_dataset = test_img_set,
-        model = pfm.models.load_foundation_model(
-            model_type = config['model']['model_name'],
-            device = 'cuda' if torch.cuda.is_available() else 'cpu', 
-            token = get_hf_token()
-        ),
-        batch_size = config['data']['batch_size_test'],
-        num_workers = config['data']['num_workers']
-    )
-
-    return train_embed_dataset, test_embed_dataset
+from factories.model_factory import get_model
+from utils.auth_utils import get_hf_token
 
 def get_dataset(config, transform_train: Optional[Callable] = None, transform_test: Optional[Callable] = None):
     data_config = config['data']  # Extract data config from the main config
@@ -60,7 +33,7 @@ def get_dataset(config, transform_train: Optional[Callable] = None, transform_te
     elif dataset_name == 'ContrastiveDataset':
         dataset_class = ContrastiveDataset
     elif dataset_name == 'EmbeddingDataset':
-        return get_embedding_dataset(config, transform_train, transform_test)
+        dataset_class = EmbeddingDataset
     else:
         raise ValueError(f'Dataset {dataset_name} is not supported.')
 

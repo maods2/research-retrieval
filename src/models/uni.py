@@ -12,7 +12,7 @@ sys.path.append(
         os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     )
 )
-from src.utils.checkpoint_utils import load_full_model
+from utils.checkpoint_utils import load_full_model
 
 import os
 import timm

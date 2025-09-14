@@ -10,18 +10,18 @@ sys.path.append(
 
 import pathology_foundation_models as pfm
 
-from src.models.fsl_models import DinoFsl
-from src.models.fsl_models import DINOv2Fsl
-from src.models.fsl_models import PhikonFsl
-from src.models.fsl_models import ResNetFsl
-from src.models.fsl_models import UNIFsl
-from src.models.fsl_models import Virchow2Fsl
-from src.models.fsl_models import ViTFsl
-from src.models.dino import DINO
-from src.models.dino import DINOv2
-from src.models.resnet import ResNet
-from src.models.vit import ViT
-from src.utils.checkpoint_utils import load_checkpoint
+from models.fsl_models import DinoFsl
+from models.fsl_models import DINOv2Fsl
+from models.fsl_models import PhikonFsl
+from models.fsl_models import ResNetFsl
+from models.fsl_models import UNIFsl
+from models.fsl_models import Virchow2Fsl
+from models.fsl_models import ViTFsl
+from models.dino import DINO
+from models.dino import DINOv2
+from models.resnet import ResNet
+from models.vit import ViT
+from utils.checkpoint_utils import load_checkpoint
 
 
 def get_model(model_config, hf_token: Optional[str] = None):

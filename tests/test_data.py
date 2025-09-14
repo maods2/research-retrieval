@@ -12,6 +12,7 @@ from src.dataloaders import (
     FewShotFolderDataset,
     TripletDataset,
     ContrastiveDataset,
+    EmbeddingDataset,
 )
 
 TRANSFORMS = A.Compose(
@@ -147,4 +148,3 @@ def test_constrative_dataset():
             label.shape,
         )
         break
-   
