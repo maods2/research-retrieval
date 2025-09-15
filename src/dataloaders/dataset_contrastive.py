@@ -1,13 +1,14 @@
 import os
 import sys
-
+from typing import *
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-from dataloaders.dataset import StandardImageDataset
 
 import cv2
 import torch
 
+
+from dataloaders.dataset import StandardImageDataset
 
 class ContrastiveDataset(StandardImageDataset):
     """
@@ -15,9 +16,18 @@ class ContrastiveDataset(StandardImageDataset):
     """
 
     def __init__(
-        self, root_dir, transform=None, class_mapping=None, config=None
+        self, 
+        root_dir: str, 
+        transform: Optional[Callable] = None, 
+        class_mapping: Optional[dict[str, int]] = None, 
+        config: Optional[dict[str, Any]] = None
     ):
-        super().__init__(root_dir, transform=None, class_mapping=class_mapping)
+        super().__init__(
+            root_dir=root_dir, 
+            transform=None, 
+            class_mapping=class_mapping, 
+            config=config
+        )
         self._transform = transform
         self.validation_dataset = None
 

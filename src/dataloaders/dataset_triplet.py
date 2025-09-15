@@ -17,7 +17,11 @@ class TripletDataset(StandardImageDataset):
     ):
         self.root_dir = Path(root_dir)
         self.transform = transform if transform else A.Compose([A.ToFloat()])
-        super().__init__(root_dir, transform, class_mapping)
+        super().__init__(
+            root_dir=root_dir,
+            transform=transform,
+            class_mapping=class_mapping
+        )
 
         self.validation_dataset = None
         self.num_classes = len(self.class_mapping)
@@ -88,36 +92,3 @@ class TripletDataset(StandardImageDataset):
 
     def set_transform(self, transform):
         self.transform = transform
-
-
-# Example usage
-if __name__ == '__main__':
-    from albumentations.pytorch import ToTensorV2
-
-    IMAGE_DIR = 'datasets/final/terumo/train'
-
-    data_transforms = A.Compose(
-        [
-            A.Resize(224, 224),
-            A.HorizontalFlip(p=0.5),
-            A.RandomBrightnessContrast(p=0.2),
-            A.Normalize(mean=(0.5, 0.5, 0.5), std=(0.5, 0.5, 0.5)),
-            ToTensorV2(),
-        ]
-    )
-    data = TripletDataset(IMAGE_DIR, data_transforms)
-    print('Number of samples:', len(data))
-    data_loader = torch.utils.data.DataLoader(
-        data, batch_size=32, shuffle=True
-    )
-    for batch in data_loader:
-        anchor, positive, negative = batch
-        print(
-            'Anchor shape:',
-            anchor.shape,
-            'Positive shape:',
-            positive.shape,
-            'Negative shape:',
-            negative.shape,
-        )
-        break

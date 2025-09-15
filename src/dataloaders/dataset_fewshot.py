@@ -1,35 +1,40 @@
-from albumentations.pytorch import ToTensorV2
+import os
+import sys
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+import random
 from pathlib import Path
-from PIL import Image
-from torch.utils.data import Dataset
-from tqdm import tqdm
-from typing import Any
-from typing import Dict
-from typing import List
-from typing import Tuple
+from typing import *
 
-import albumentations as A
 import cv2
 import numpy as np
-import os
-import random
-import sys
+from PIL import Image
+from tqdm import tqdm
+import albumentations as A
+
 import torch
+from torch.utils.data import Dataset
+from albumentations.pytorch import ToTensorV2
 
 
-sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from dataloaders.dataset import StandardImageDataset
 
 
 class FewShotFolderDataset(StandardImageDataset):
     def __init__(
-        self, root_dir, transform=None, class_mapping=None, config=None
+        self, 
+        root_dir: str, 
+        config: dict[str, Any],
+        transform: Optional[Callable] = None, 
+        class_mapping: Optional[dict[str, int]] = None, 
     ):
         """ """
         super(FewShotFolderDataset, self).__init__(
-            root_dir, transform, class_mapping, config
+            root_dir=root_dir, 
+            transform=transform, 
+            class_mapping=class_mapping, 
+            config=config
         )
-        self.validation_dataset = None
+        self.validation_dataset = None #TODO: Adapt to use the validation subset provided by the super class.
         self.root_dir = Path(root_dir)
         self.n_way = config['model'].get(
             'n_way', 2
@@ -41,10 +46,6 @@ class FewShotFolderDataset(StandardImageDataset):
             'q_queries', 6
         )   #  query shots per class
         self.transform = transform
-
-        self.classes = [
-            (i, cls) for i, cls in enumerate(list(self.class_mapping.keys()))
-        ]
 
     def __len__(self):
         """
@@ -115,7 +116,8 @@ class FewShotFolderDataset(StandardImageDataset):
         support_imgs, support_lbls = [], []
         query_imgs, query_lbls = [], []
 
-        for i, cls in selected:
+        for cls in selected:
+            print(cls, self.class_mapping[cls], self.image_dict[self.class_mapping[cls]])
             imgs = random.sample(
                 self.image_dict[self.class_mapping[cls]],
                 self.k_shot + self.q_queries,
@@ -128,14 +130,14 @@ class FewShotFolderDataset(StandardImageDataset):
                 if self.transform:
                     img = self.transform(image=img)['image']
                 support_imgs.append(img)
-                support_lbls.append(i)
+                support_lbls.append(self.class_mapping[cls])
 
             for p in query_paths:
                 img = self._open_image(p)
                 if self.transform:
                     img = self.transform(image=img)['image']
                 query_imgs.append(img)
-                query_lbls.append(i)
+                query_lbls.append(self.class_mapping[cls])
 
         support = torch.stack(support_imgs)      # [n_way*k_shot, C, H, W]
         query = torch.stack(query_imgs)        # [n_way*q_queries, C, H, W]
@@ -150,20 +152,20 @@ class FewShotFolderDataset(StandardImageDataset):
 class SupportSetDataset(StandardImageDataset):
     def __init__(
         self,
-        root_dir,
-        transform=None,
-        class_mapping=None,
-        config=None,
-        n_per_class=None,
+        root_dir: str,
+        config: dict[str, Any],
+        transform: Optional[Callable] = None,
+        class_mapping: Optional[dict[str, int]] = None,
+        n_per_class: Optional[int] = None,
     ):
         """
         Dataset para carregar conjuntos de suporte para few-shot learning.
 
         Args:
             root_dir (str): Caminho base onde estão as imagens.
+            config (dict): Dicionário com configurações, incluindo paths e transformações.
             transform (callable, optional): Transformações para aplicar nas imagens.
             class_mapping (dict): Mapeamento de nomes de classe para índices.
-            config (dict): Dicionário com configurações, incluindo paths e transformações.
             n_per_class (int): Número de imagens por classe a serem amostradas.
         """
         self.root_dir = root_dir
@@ -235,67 +237,3 @@ class SupportSetDataset(StandardImageDataset):
 
         return image, label
 
-
-if __name__ == '__main__':
-    import os
-    import sys
-
-    sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-    from albumentations.pytorch import ToTensorV2
-    from torch.utils.data import DataLoader
-
-    import albumentations as A
-
-    root_dir = './datasets/final/glomerulo/train'
-    custom_mapping = {
-        'Crescent': 0,
-        'Hypercellularity': 1,
-        'Membranous': 2,
-        'Normal': 3,
-        'Podocytopathy': 4,
-        'Sclerosis': 5,
-    }
-    config = {'model': {'n_way': 6, 'k_shot': 5, 'q_queries': 6}}
-
-    # Define transformations using Albumentations
-    data_transforms = A.Compose(
-        [
-            A.Resize(224, 224),
-            A.Normalize(mean=(0.5, 0.5, 0.5), std=(0.5, 0.5, 0.5)),
-            ToTensorV2(),
-        ]
-    )
-
-    # Create the dataset
-    dataset = FewShotFolderDataset(
-        root_dir=root_dir,
-        transform=data_transforms,
-        class_mapping=custom_mapping,
-        config=config,
-    )
-    train_loader = DataLoader(
-        dataset,
-        batch_size=1,
-        shuffle=False,
-        num_workers=3,
-        pin_memory=True,
-    )
-    test_loader = DataLoader(
-        dataset,
-        batch_size=36,
-        shuffle=False,
-        num_workers=3,
-        pin_memory=True,
-    )
-
-    # Test the train loader
-    support, s_lbls, query, q_lbls = next(iter(train_loader))
-    print(f'Support shape: {support.shape}, Labels: {s_lbls.shape}')
-    print(f'Query shape: {query.shape}, Labels: {q_lbls.shape}')
-
-    # test the test loader
-    test_loader.dataset.k_shot = 1
-    test_loader.dataset.validation_dataset = True
-    query, q_lbls = next(iter(test_loader))
-    print(f'Query shape: {query.shape}, Labels: {q_lbls.shape}')
-    print()

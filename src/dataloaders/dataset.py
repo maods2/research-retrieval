@@ -1,6 +1,6 @@
 import os
 import sys
-
+from typing import *
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
@@ -11,25 +11,30 @@ import cv2
 import numpy as np
 import time
 import torch
+from sklearn.model_selection import train_test_split
 
 
 class StandardImageDataset(Dataset):
     def __init__(
         self,
-        root_dir,
-        transform=None,
-        class_mapping=None,
-        config=None,
-        return_one_hot=False,
+        root_dir: str,
+        return_one_hot: bool = False,
+        transform: Optional[Callable] = None,
+        config: Optional[dict[str, Any]] = None, 
+        class_mapping: Optional[dict[str, int]] = None,
+        test_split: Optional[float] = None,
+        val_split: Optional[float] = None,
+        shuffle_generator: Optional[np.random.Generator] = None,
     ):
         """
         Initializes the dataset.
 
         Args:
             root_dir (str): Root directory containing class subdirectories.
+            return_one_hot (bool): Returns labels as a one-hot encoded vector. Default: False.
             transform (callable, optional): Transformations to be applied to the images.
             class_mapping (dict, optional): Custom mapping for classes.
-                                             If None, it will be automatically created based on folder names.
+                                            If None, it will be automatically created based on folder names.
         """
         self.root_dir = Path(root_dir)
         self.transform = transform
@@ -38,35 +43,86 @@ class StandardImageDataset(Dataset):
         self.one_hot_labels = []    # List of one-hot encoded labels
         self.labels_str = []        # List of text labels
         self.return_one_hot = return_one_hot
+        self.shuffle_generator = shuffle_generator
+
+        self.train_idxs = []
+        self.test_idxs  = []
+        self.val_idxs   = []
+
+        #### Load train/test/val folders if both_test_split
+        #TODO: Maybe make this a bit more flexible, e.g. load train/test from folders and dynamically split train/val. 
+        if all(x is None for x in (test_split,val_split)):
+            self._load_data_from_dir(self.root_dir / 'train', class_mapping=class_mapping)
+            self.train_idxs = np.arange(len(self.image_paths))
+
+            self.val_idxs = []
+            if (self.root_dir / 'val').exists():
+                self._load_data_from_dir(self.root_dir / 'val', class_mapping=class_mapping)
+                self.val_idxs = np.arange(start=len(self.train_idxs), stop=len(self.image_paths))
+
+            self._load_data_from_dir(self.root_dir / 'test', class_mapping=class_mapping)
+            self.test_idxs = np.arange(start=len(self.train_idxs)+len(self.val_idxs), stop=len(self.image_paths))
+
+        else: ##### Dynamic train/test/val splitting
+            self.test_split = test_split
+            self.val_split  = val_split
+
+            self._load_data_from_dir(self.root_dir, class_mapping=class_mapping)        
+            assert len(self.image_paths) == len(self.labels)
+
+            # list of indices. Made this way to avoid messing with positioning
+            # in multiple lists at once. This way we can easily retrieve images,
+            # labels, label_str and one_hot from their indices.
+            idxs = np.arange(len(self.image_paths))
+
+            if self.shuffle_generator is not None:
+                self.shuffle_generator.shuffle(idxs)
+            
+            if test_split is not None:
+                train_split = int(np.floor((1-test_split)*idxs.size))
+                self.train_idxs, self.test_idxs = idxs[:train_split], idxs[train_split:]
+
+            if val_split is not None:
+                train_split = int(np.floor((1-val_split)*self.train_idxs.size))
+                self.train_idxs, self.val_idxs = self.train_idxs[:train_split], self.train_idxs[train_split:]
+            
+
+    def _load_data_from_dir(self, root_dir: Path, class_mapping: Optional[dict]):
 
         # Get class names from folder names
-        classes = sorted(
+        self.classes = sorted(
             [
                 folder.name
-                for folder in self.root_dir.iterdir()
+                for folder in root_dir.iterdir()
                 if folder.is_dir()
             ]
-        )
+        ) if class_mapping is None else list(class_mapping.keys())
 
         # Create automatic mapping if none is provided
         if class_mapping is None:
             class_mapping = {
-                class_name: idx for idx, class_name in enumerate(classes)
+                class_name: idx for idx, class_name in enumerate(self.classes)
             }
 
-        for class_name in classes:
-            if class_name not in class_mapping:
+        # Validate class mapping; asserts every class is contained in a mapping.
+        for class_name in self.classes:
+            validation = [False for _ in range(len(self.classes))]
+            for i, key_name in enumerate(class_mapping.keys()):
+                if key_name in class_name:
+                    validation[i] = True
+
+            if not any(validation):
                 raise ValueError(
                     f'Class {class_name} not found in class mapping'
                 )
+                
 
         self.class_mapping = class_mapping
         self.image_dict = {
-            self.class_mapping[class_name]: [] for class_name in classes
+            self.class_mapping[class_name]: [] for class_name in self.classes
         }
 
-        for class_name in classes:
-            class_dir = self.root_dir / class_name
+        for class_name in self.classes:
             image_extensions = [
                 '*.jpg',
                 '*.jpeg',
@@ -83,10 +139,11 @@ class StandardImageDataset(Dataset):
 
             # Collect all matching image files for each extension
             images = []
-            for ext in image_extensions:
-                images.extend(class_dir.rglob(ext))
+            for folder in root_dir.iterdir():
+                if class_name in folder.name: # any folder that contains `class_name` will be considered.
+                    for ext in image_extensions:
+                        images.extend(folder.rglob(ext))
 
-            #
             self.image_dict[self.class_mapping[class_name]].extend(images)
 
             # Register images and labels
@@ -143,52 +200,3 @@ class StandardImageDataset(Dataset):
         ovwerride the base class method to set a new transform.
         """
         self.transform = transform
-
-
-if __name__ == '__main__':
-    import os
-    import sys
-
-    sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-    from albumentations.pytorch import ToTensorV2
-    from torch.utils.data import DataLoader
-
-    import albumentations as A
-
-    root_dir = './datasets/final/glomerulo/train'
-    custom_mapping = {
-        'Crescent': 0,
-        'Hypercellularity': 1,
-        'Membranous': 2,
-        'Normal': 3,
-        'Podocytopathy': 4,
-        'Sclerosis': 5,
-    }
-
-    # Define transformations using Albumentations
-    data_transforms = A.Compose(
-        [
-            A.Resize(224, 224),
-            A.Normalize(mean=(0.5, 0.5, 0.5), std=(0.5, 0.5, 0.5)),
-            ToTensorV2(),
-        ]
-    )
-
-    # Create the dataset
-    dataset = StandardImageDataset(
-        root_dir=root_dir,
-        transform=data_transforms,
-        class_mapping=custom_mapping,
-    )
-    train_loader = DataLoader(
-        dataset,
-        batch_size=32,
-        shuffle=False,
-        num_workers=3,
-        pin_memory=True,
-    )
-
-    # Test the dataset
-    for images, labels in train_loader:
-        print(images.shape, labels.shape)
-        break
