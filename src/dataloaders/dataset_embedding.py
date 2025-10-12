@@ -38,24 +38,28 @@ class EmbeddingDataset(StandardImageDataset):
         
         assert os.path.exists(root_dir), f"Received invalid directory: {root_dir}"
         
-        pickle_fpath = os.path.join('./data/', root_dir.split('/')[-1] + config['model']['model_name'] + ".pkl")
+        pickle_fpath = os.path.join('./data/', root_dir.split('/')[-2] + '-' + root_dir.split('/')[-1] + '-' + config['model']['model_name'] + ".pkl")
         self.data = None
 
         if os.path.exists(pickle_fpath):
             self.data = pfm.dataset.EmbeddingCache.load_from_file(pickle_fpath, device=device)
         else:
-            assert "embedding_model" in config['data'].keys(), "No pickle file found for this dataset.\
-                Please specify an embedding model in your configuration file under `data.embedding_model` to produce such file.\
-                Remember to also set `data.extraction_batch_size` and `data.extraction_num_workers`. If not set, will use the values \
-                set to `data.batch_size_train` and `data.num_workers`, respectively."
+            assert "embedding_model" in config['data'].keys(), \
+            """No pickle file found for this dataset. Please specify an embedding model in your configuration file under `data.embedding_model` to produce such file. 
+            Remember to also set `data.extraction_batch_size` and `data.extraction_num_workers`. If not set, will use the values set to `data.batch_size_train` and
+            `data.num_workers`, respectively.
+            """
 
-            batch_size = config['data']['extraction_batch_size'] \
-                            if 'extraction_batch_size' in config['data'].keys() \
-                            else config['data']['batch_size_train']
-
-            num_workers = config['data']['extraction_num_workers'] \
-                            if 'extraction_num_workers' in config['data'].keys() \
-                            else config['data']['num_workers']
+            batch_size = config['data'][
+                'extraction_batch_size'
+                if 'extraction_batch_size' in config['data'].keys() 
+                else 'batch_size_train'
+            ]
+            num_workers = config['data'][
+                'extraction_num_workers'
+                if 'extraction_num_workers' in config['data'].keys()
+                else 'num_workers'
+            ]
 
             embedding_model = pfm.models.load_foundation_model( # TODO: support src.factories.model_factory.get_model?
                 model_type=config['data']["embedding_model"],
@@ -81,7 +85,6 @@ class EmbeddingDataset(StandardImageDataset):
                 num_workers=num_workers,
                 display_progress=True   
             )
-            self.data.labels.to(device)
             self.data.save(pickle_fpath)
 
         assert self.data is not None, "Unreachable."

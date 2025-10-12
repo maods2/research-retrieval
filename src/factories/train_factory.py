@@ -1,16 +1,18 @@
+import pipelines.training_pipes as pipelines
+
 def get_train_function(config):
 
-    if config['training']['pipeline'] == 'default_trainer':
-        from pipelines.training_pipes.default_trainer import DefaultTrainer
+    match config['training']['pipeline']:
+        case 'default_trainer':
+            return pipelines.DefaultTrainer(config)
 
-        return DefaultTrainer(config)
+        case 'fsl_trainer':
+            return pipelines.FewShotTrainer(config)
 
-    elif config['training']['pipeline'] == 'fsl_trainer':
-        from pipelines.training_pipes.few_shot_trainer import FewShotTrainer
+        case 'terumo_prototypical_trainer':
+            return pipelines.terumo.PrototypicalRetrievalTrainer(config)
 
-        return FewShotTrainer(config)
-
-    else:
-        raise ValueError(
-            f'Training pipeline {config["training"]["pipeline"]} is not supported'
-        )
+        case _:
+            raise ValueError(
+                f'Training pipeline {config["training"]["pipeline"]} is not supported'
+            )

@@ -117,7 +117,7 @@ class FewShotFolderDataset(StandardImageDataset):
         query_imgs, query_lbls = [], []
 
         for cls in selected:
-            print(cls, self.class_mapping[cls], self.image_dict[self.class_mapping[cls]])
+            #print(cls, self.class_mapping[cls], self.image_dict[self.class_mapping[cls]])
             imgs = random.sample(
                 self.image_dict[self.class_mapping[cls]],
                 self.k_shot + self.q_queries,

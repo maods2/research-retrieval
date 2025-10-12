@@ -1,6 +1,8 @@
 data:
-  dataset_type: StandardImageDataset
-  train_dir: /datasets/terumo-data-jpeg/
+  dataset_type: FewShotFolderDataset
+  train_dir: /datasets/glomerulus-split/train
+  test_dir: /datasets/glomerulus-split/test
+  embedding_model: uni
   class_mapping: {Crescent: 0, Hypercelularidade: 1, Membranous: 2, Normal: 3, Podocitopatia: 4, Sclerosis: 5}
   batch_size_train: 64 
   batch_size_eval: 64

@@ -51,7 +51,7 @@ class StandardImageDataset(Dataset):
 
         #### Load train/test/val folders if both_test_split
         #TODO: Maybe make this a bit more flexible, e.g. load train/test from folders and dynamically split train/val. 
-        if all(x is None for x in (test_split,val_split)):
+        if 'train' in os.listdir(self.root_dir):
             self._load_data_from_dir(self.root_dir / 'train', class_mapping=class_mapping)
             self.train_idxs = np.arange(len(self.image_paths))
 

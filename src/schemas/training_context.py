@@ -1,18 +1,20 @@
-from core.base_metric_logger import BaseMetricLogger
 from dataclasses import dataclass
+from typing import Any, Callable
+
 from torch.utils.data import DataLoader
 
+from core.base_metric_logger import BaseMetricLogger
 
 @dataclass
 class TrainingContext:
-    logger: any
+    logger: Any
     metric_logger: BaseMetricLogger
-    model: any
-    loss_fn: any
-    optimizer: any
+    model: Any
+    loss_fn: Any
+    optimizer: Any
     train_loader: DataLoader
     eval_loader: DataLoader
-    train_fn: callable
-    eval_fn: callable
+    train_fn: Callable
+    eval_fn: Callable
     metrics: list
-    config: any
+    config: Any
