@@ -1,2 +1,0 @@
-
-from .prototypical_retrieval_trainer import PrototypicalRetrievalTrainer

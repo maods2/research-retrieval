@@ -29,8 +29,8 @@ class WrappedFsl(nn.Module):
     def __init__(
         self, 
         backbone: nn.Module | str, 
-        hidden_dim: Optional[int], 
-        embedding_dim: Optional[int],
+        hidden_dim: Optional[int] = None, 
+        embedding_dim: Optional[int] = None,
         hf_token: Optional[str] = None,
         device: str = 'cuda',
     ):
