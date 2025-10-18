@@ -13,16 +13,6 @@ import torch.nn.functional as F
 
 import pathology_foundation_models as pfm
 
-#from models.dino import DINO
-#from models.dino import DINOv2
-#from models.phikon import Phikon
-#from models.resnet import ResNet
-#from models.uni import UNI
-#from models.virchow2 import Virchow2
-#from models.vit import ViT
-#from models.semantic_embedding_builder import SemanticEmbeddingBuilder
-
-
 local_dir = './assets/ckpts/vit_large_patch16_224.dinov2.uni_mass100k/'
 
 class WrappedFsl(nn.Module):
@@ -36,15 +26,19 @@ class WrappedFsl(nn.Module):
     ):
         super().__init__()
 
+        self.hidden_dim = hidden_dim if hidden_dim else 512
+        self.embedding_dim = embedding_dim if embedding_dim else 128
+        self.device = device
+
         if isinstance(backbone, str):
-            backbone = pfm.models.load_foundation_model(backbone, token=hf_token,device=device)
+            backbone = pfm.models.load_foundation_model(backbone, token=hf_token, device=self.device)
 
         assert isinstance(backbone, nn.Module)
         self.add_module('backbone', backbone)
 
         self.backbone.eval()
         with torch.no_grad():
-            test_tensor = torch.randint(0, 255, (1, 3, 224, 224))
+            test_tensor = torch.randint(0, 255, (1, 3, 224, 224), dtype=torch.float32).to(self.device)
             self.backbone_out_dim = self.backbone(test_tensor).shape[-1]
 
         # Freeze backbone if needed
@@ -52,17 +46,16 @@ class WrappedFsl(nn.Module):
             param.requires_grad = False
 
         # Create projection
-        if hidden_dim is None:
-            hidden_dim = 512
-
-        if embedding_dim is None:
-            embedding_dim = 128
-
         self.add_module('projection', nn.Sequential(
-            nn.Linear(self.backbone_out_dim, hidden_dim),
+            nn.Linear(self.backbone_out_dim, self.hidden_dim),
             nn.GELU(),
-            nn.Linear(hidden_dim, embedding_dim),
-        ).to(device))
+            nn.Linear(self.hidden_dim, self.embedding_dim),
+        ).to(self.device))
+
+    def train(self, mode: bool = True):
+        super().train(mode)
+        self.backbone.eval() # assert that the backbone always is in evaluation mode
+        return self
 
     def compute_prototypes(
         self, embeddings: torch.Tensor, labels: torch.Tensor
@@ -110,7 +103,10 @@ class WrappedFsl(nn.Module):
         return (-dists).softmax(dim=1)
 
     def forward(self, x):
-        x = self.backbone(x)
+        with torch.no_grad():
+            x = self.backbone(x)
+
+        x = x.clone() # required by autograd.
         x = self.projection(x)
         return x
 
