@@ -9,6 +9,7 @@
             "extensions": [
                 "ms-python.python",
                 "ms-python.python-debug",
+                "mhutchie.git-graph",
                 "Continue.continue",
                 "ryanluker.vscode-coverage-gutters",
                 "ms-toolsai.jupyter",
