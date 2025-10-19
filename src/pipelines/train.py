@@ -19,6 +19,7 @@ def setup_components(config) -> TrainingContext:
         get_transforms(config['transform'].get('test')),
     )
     model = get_model(config['model'], hf_token=get_hf_token())
+
     return TrainingContext(
         logger=setup_logger(config),
         metric_logger=setup_metric_logger(config),

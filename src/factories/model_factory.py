@@ -15,11 +15,13 @@ from models.dino import DINO
 from models.dino import DINOv2
 from models.resnet import ResNet
 from models.vit import ViT
+from models.n_branch_mlp import N_BranchMLP
 from utils.checkpoint_utils import load_checkpoint
 
 
 def get_model(model_config: dict[str, Any], hf_token: Optional[str] = None):
-    model_code = model_config.get('model_code').lower()
+    assert 'model_code' in model_config.keys(), "No `model_code` key found. Cannot construct model."
+    model_code = model_config['model_code'].lower().strip()
 
     if pfm.models.is_model_available(model_str=model_code):
         model = pfm.models.load_foundation_model(model_type=model_code, token=hf_token)
@@ -40,6 +42,12 @@ def get_model(model_config: dict[str, Any], hf_token: Optional[str] = None):
 
     elif 'fsl' in model_code:
         model = WrappedFsl.from_config(model_config=model_config, hf_token=hf_token)
+
+    ################### n-Branch MLP Attention Metric #################################
+
+    elif 'branch_mlp' in model_code:
+        model = N_BranchMLP(model_config)
+        print(model)
 
     else:
         raise ValueError(f'Model {model_code} is not supported')
