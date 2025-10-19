@@ -33,10 +33,20 @@ train-all-models:
 # Download Datasets
 # ============================
 download-datasets:
-	cd ./datasets && \
-	gdown https://drive.google.com/uc?id=14GaaCw7og5jqwsBggb52EgVQKBwOJQpV && \
-	unzip final_v2.zip && \
-	rm -rf final_v2.zip
+	datasets="bracs crc-val-he-7k lung-colon skin-cancer ubc-ovarian-cancer"; \
+	ids="1G6Db1DZ_t3dctc78XvQKLwpSR2VOFRt4 1ZlTFj3OGeSW-rx-wvYHROaRIZRgdsfCh 17NVQEcxBt5gCSllS4PUs6RSPaJr1VQyZ 1hs449HmRTXUb3xyDvtJOFR0IjA4gzIrz 1mLLWzdgKBRwL8wM2lPjSnIYgh2TO4YLB"; \
+	i=0; \
+	for dataset in $$datasets; do \
+		id=$$(echo $$ids | cut -d' ' -f$$((i+1))); \
+		make download-dataset DATASET=$$dataset ID=$$id; \
+		i=$$((i+1)); \
+	done
+
+download-dataset:
+	cd ./data && \
+	gdown https://drive.google.com/uc?id=$(ID) && \
+	unzip $(DATASET).zip && \
+	rm -rf $(DATASET).zip
 
 
 # ============================
