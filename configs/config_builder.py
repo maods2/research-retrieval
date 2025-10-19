@@ -72,10 +72,22 @@ def main():
     experiments = [
     #   (model_code,        model_name,         pipeline_type,          model_template    dataset_name,   dataset_template  )                         
 
-        ("resnet",          "resnet18_classif",  "default_trainer",      "02-resnet-clsf",    "ovarian-cancer",  "ovarian-cancer" ),
-        ("resnet_fsl",      "resnet18",          "fsl_trainer",          "01-few-shot",      "ovarian-cancer",  "ovarian-cancer-fsl" ),
-        ("resnet_fsl",      "resnet18",          "retrieval_evaluator",  "01-few-shot",      "ovarian-cancer-fsl-eval",  "ovarian-cancer-fsl" ),
+
+        # Supervised Contrastive Learning (SupCon) experiments
+        ("resnet",          "resnet18",          "supcon_trainer",       "03-supcon",       "glomerulo",  "glomerulo" ),
+        ("resnet",          "resnet18",          "supcon_trainer",       "03-supcon",       "bracs",          "bracs" ),
+        ("resnet",          "resnet18",          "supcon_trainer",       "03-supcon",       "crc-val-he-7k",  "crc-val-he-7k" ),
+        ("resnet",          "resnet18",          "supcon_trainer",       "03-supcon",       "lung-colon",     "lung-colon" ),
+        ("resnet",          "resnet18",          "supcon_trainer",       "03-supcon",       "skin-cancer",    "skin-cancer" ),
+        ("resnet",          "resnet18",          "supcon_trainer",       "03-supcon",       "ubc-ovarian-cancer", "ubc-ovarian-cancer" ),
         
+        # Supervised Hashing experiments
+        ("liu_dsh",         "liu_dsh",           "supervised_hashing_trainer", "04-supervised-hashing", "glomerulo",  "glomerulo" ),
+        ("liu_dsh",         "liu_dsh",           "supervised_hashing_trainer", "04-supervised-hashing", "bracs",          "bracs" ),
+        ("liu_dsh",         "liu_dsh",           "supervised_hashing_trainer", "04-supervised-hashing", "crc-val-he-7k",  "crc-val-he-7k" ),
+        ("liu_dsh",         "liu_dsh",           "supervised_hashing_trainer", "04-supervised-hashing", "lung-colon",     "lung-colon" ),
+        ("liu_dsh",         "liu_dsh",           "supervised_hashing_trainer", "04-supervised-hashing", "skin-cancer",    "skin-cancer" ),
+        ("liu_dsh",         "liu_dsh",           "supervised_hashing_trainer", "04-supervised-hashing", "ubc-ovarian-cancer", "ubc-ovarian-cancer" ),
         
         # ("dino",            "dino",             "default_trainer",      "00-default",      "skin-cancer",  "skin-cancer" ),
         # ("dinov2",          "dinov2",           "default_trainer",      "00-default",      "skin-cancer",  "skin-cancer" ),

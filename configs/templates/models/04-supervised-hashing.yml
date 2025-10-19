@@ -1,0 +1,22 @@
+model:
+  model_code: <model_code>
+  model_name: <model_name>
+  experiment_name: <model_code>_<dataset_name>
+  pretrained: true
+  load_checkpoint: false
+  checkpoint_path: ''
+  freeze_params: false
+  encoder_dim: 512
+  code_size: 32
+  margin: 5.0
+  alpha: 0.01
+
+optimizer:
+  name: adam
+  lr: 3e-4
+  weight_decay: 1e-4
+
+loss:
+  name: "supervised_hashing"
+  margin: 5.0
+  alpha: 0.01
