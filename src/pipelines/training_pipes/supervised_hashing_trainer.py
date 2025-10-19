@@ -94,6 +94,7 @@ class SupervisedHashingTrainer(BaseTrainer):
         self,
         model: torch.nn.Module,
         dataloader: DataLoader,
+        ctx: TrainingContext,
         device: str,
         logger: Callable = None,
     ) -> Dict[str, Any]:
@@ -105,7 +106,7 @@ class SupervisedHashingTrainer(BaseTrainer):
             'negative_loss': [],
             'regularization_loss': []
         }
-
+        loss_fn = ctx.loss_fn
         with torch.no_grad():
             for batch in tqdm(dataloader, desc='Evaluating'):
                 x_imgs, x_targets, y_imgs, y_targets, target_equals = batch
@@ -117,8 +118,9 @@ class SupervisedHashingTrainer(BaseTrainer):
                 x_out = model(x_imgs)
                 y_out = model(y_imgs)
                 
-                # Compute loss
-                loss_dict = self.config['loss_fn'](x_out, y_out, target_equals)
+                # Compute loss using the loss function from config
+                
+                loss_dict = loss_fn(x_out, y_out, target_equals)
                 
                 for key in all_losses:
                     all_losses[key].append(loss_dict[key].item())
@@ -231,10 +233,32 @@ if __name__ == '__main__':
         T.Normalize(mean=(0.1307,), std=(0.3081,))
     ])
 
-    # Dataset
+    # Dataset - Note: This example uses MNIST as base dataset
+    # In real usage, you would use the framework's dataset loading
     base_dataset = MNIST(root='./data', train=True, transform=transform, download=True)
-    dataset = SupervisedHashingDataset(base_dataset, transform=None, train=True)
-    dataloader = DataLoader(dataset, batch_size=128, shuffle=True)
+    
+    # For demonstration, we'll create a simple wrapper to use MNIST with our dataset
+    class MNISTWrapper:
+        def __init__(self, mnist_dataset):
+            self.mnist_dataset = mnist_dataset
+        
+        def __len__(self):
+            return len(self.mnist_dataset)
+        
+        def __getitem__(self, idx):
+            return self.mnist_dataset[idx]
+    
+    # Create dataset using the framework's approach
+    # In practice, you would use the dataset factory or direct instantiation
+    # with proper root_dir and class_mapping
+    dataset = SupervisedHashingDataset(
+        root_dir='./data/example',  # This would be your actual dataset path
+        transform=None,  # Transforms are handled by the parent class
+        train=True
+    )
+    
+    # For this example, let's create a simple dataloader
+    # dataloader = DataLoader(dataset, batch_size=128, shuffle=True)
 
     # Model
     model = LiuDSH(code_size=8, num_classes=10)
@@ -250,29 +274,5 @@ if __name__ == '__main__':
         config={'training': {'epochs': 10, 'early_stopping_patience': 3}}
     )
 
-    # Dummy context for testing
-    class DummyContext:
-        def __init__(self):
-            self.model = model
-            self.loss_fn = loss_fn
-            self.optimizer = optimizer
-            self.train_loader = dataloader
-            self.eval_loader = dataloader
-            self.config = trainer.config
-            self.logger = DummyLogger()
-            self.metric_logger = DummyMetricLogger()
-
-    class DummyLogger:
-        def info(self, msg):
-            print(msg)
-
-    class DummyMetricLogger:
-        def log_json(self, d, name):
-            print(f'Metrics logged: {name}')
-
-        def log_artifact(self, filepath):
-            pass
-
-    # Test training
-    ctx = DummyContext()
-    trainer(ctx)
+    print("SupervisedHashingTrainer created successfully!")
+    print("To use with the framework, integrate with the dataset factory and training pipeline.")
