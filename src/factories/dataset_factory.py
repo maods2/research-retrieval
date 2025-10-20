@@ -2,6 +2,7 @@ from dataloaders.dataset import StandardImageDataset
 from dataloaders.dataset_contrastive import ContrastiveDataset
 from dataloaders.dataset_fewshot import FewShotFolderDataset
 from dataloaders.dataset_triplet import TripletDataset
+from dataloaders.dataset_supervised_hashing import SupervisedHashingDataset
 from torch.utils.data import DataLoader
 
 
@@ -33,6 +34,8 @@ def get_dataloader(config, transform_train, transforms_test):
         dataset_class = FewShotFolderDataset
     elif dataset_name == 'ContrastiveDataset':
         dataset_class = ContrastiveDataset
+    elif dataset_name == 'SupervisedHashingDataset':
+        dataset_class = SupervisedHashingDataset
     else:
         raise ValueError(f'Dataset {dataset_name} is not supported.')
     # Create dataset instances for training and evaluation
