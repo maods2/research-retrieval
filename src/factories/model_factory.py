@@ -7,6 +7,8 @@ sys.path.append(
 )
 
 
+from src.models.liu_dsh import LiuDSH
+from src.models.supcon import SupCon
 from src.models.dino import DINO
 from src.models.dino import DINOv2
 from src.models.fsl_models import DinoFsl
@@ -53,6 +55,14 @@ def get_model(model_config):
 
     elif model_code == 'phikon-v2':   # Pathology Foundation Model
         model = Phikon(model_name=model_config['model_name'])
+        
+    ################### Benchmark Models ######################################
+        
+    elif model_code == 'liu_dsh':   # Deep Supervised Hashing
+        model = LiuDSH(model_config)
+    
+    elif model_code == 'supcon':   # Supervised Contrastive Learning
+        model = SupCon(model_config)
 
     ################### Few-Shot Learning Models ######################################
 

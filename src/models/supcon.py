@@ -1,6 +1,5 @@
 import torch
 from torch import nn
-import torch.nn.functional as F
 import sys
 import os
 
@@ -36,13 +35,27 @@ def get_backbone_model(backbone_config):
         raise ValueError(f"Unsupported backbone type: {backbone_type}")
 
 
-class LiuDSH(nn.Module):
+class ProjectionHead(nn.Module):
+    def __init__(self, base_model, hidden_dim=512, out_dim=128):
+        super().__init__()
+        self.backbone = base_model
+        self.proj = nn.Sequential(
+            nn.Linear(hidden_dim, hidden_dim),
+            nn.ReLU(),
+            nn.Linear(hidden_dim, out_dim),
+        )
+
+    def forward(self, x):
+        features = self.backbone(x)
+        return self.proj(features)
+
+
+class SupCon(nn.Module):
     """
-    Liu Deep Supervised Hashing (DSH) model with configurable backbone.
+    Supervised Contrastive Learning model with configurable backbone.
     
-    This model implements the deep supervised hashing approach for learning
-    binary hash codes for image retrieval tasks. It can use different backbones
-    (ResNet, DINO, UNI, etc.) for feature extraction.
+    This model can use different backbones (ResNet, DINO, UNI, etc.) for 
+    supervised contrastive learning tasks.
     """
     
     def __init__(self, model_config: dict):
@@ -55,13 +68,15 @@ class LiuDSH(nn.Module):
         # Get backbone output dimensions
         backbone_output_dim = self._get_backbone_output_dim(backbone_config)
         
-        # Hash code size
-        code_size = model_config.get('code_size', 32)
+        # Projection head configuration
+        hidden_dim = model_config.get('hidden_dim', 512)
+        out_dim = model_config.get('out_dim', 128)
         
-        # Create hash layer
-        self.hash_layer = nn.Linear(
-            in_features=backbone_output_dim, 
-            out_features=code_size
+        # Create projection head
+        self.projection_head = ProjectionHead(
+            base_model=self.backbone,
+            hidden_dim=backbone_output_dim,
+            out_dim=out_dim
         )
     
     def _get_backbone_output_dim(self, backbone_config):
@@ -96,12 +111,6 @@ class LiuDSH(nn.Module):
         
         # Default fallback
         return 512
-
+    
     def forward(self, x):
-        # Extract features using backbone
-        features = self.backbone(x)
-        
-        # Generate hash codes
-        hash_codes = self.hash_layer(features)
-        
-        return hash_codes
+        return self.projection_head(x)
