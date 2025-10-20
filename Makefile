@@ -1,4 +1,4 @@
-.PHONY: train app lint lint-diff clean retrival-all-models retrival-all-datasets-models
+.PHONY: train app lint lint-diff clean retrival-all-models retrival-all-datasets-models train-retrieval-models test-retrieval-models generate-configs
 
 # Default configuration
 CONFIG ?= default_train_config.yaml
@@ -28,6 +28,41 @@ train-all-models:
 			python3 src/main.py --config configs/$$dataset/$$model\_config.yaml --pipeline train; \
 		done; \
 	done
+
+# ============================
+# Training Retrieval Models (SupCon and LiuDSH) on All Datasets
+# ============================
+
+train-retrieval-models:
+	datasets="glomerulo bracs crc-val-he-7k lung-colon skin-cancer ubc-ovarian-cancer"; \
+	models="supcon liu_dsh"; \
+	for dataset in $$datasets; do \
+		for model in $$models; do \
+			echo "Training $$model on $$dataset"; \
+			python3 src/main.py --config configs/$$dataset/$$model.yml --pipeline train; \
+		done; \
+	done
+
+# ============================
+# Test Training Retrieval Models (1 epoch validation)
+# ============================
+
+test-retrieval-models:
+	datasets="glomerulo bracs crc-val-he-7k lung-colon skin-cancer ubc-ovarian-cancer"; \
+	models="supcon liu_dsh"; \
+	for dataset in $$datasets; do \
+		for model in $$models; do \
+			echo "Test training $$model on $$dataset"; \
+			python3 src/main.py --config configs/$$dataset/$$model\_test.yml --pipeline train; \
+		done; \
+	done
+
+# ============================
+# Generate Configurations
+# ============================
+
+generate-configs:
+	python3 configs/config_builder.py
 
 # ============================
 # Download Datasets
