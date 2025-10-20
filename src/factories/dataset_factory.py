@@ -21,8 +21,8 @@ def get_dataloader(config, transform_train, transforms_test):
     """
     data_config = config['data']  # Extract data config from the main config
     # Get transformations based on config
-    dataset_name = data_config.get(
-        'dataset_type', 'StandardImageDataset'
+    dataset_name = config['model'].get(
+        'dataloader_type', 'StandardImageDataset'
     )  # Default to TerumoImageDataset
 
     # Select dataset class dynamically based on config

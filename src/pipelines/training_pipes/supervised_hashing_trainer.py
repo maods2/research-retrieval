@@ -160,7 +160,7 @@ class SupervisedHashingTrainer(BaseTrainer):
 
             # Validation
             val_metrics = self.evaluate(
-                ctx.model, ctx.eval_loader, device, ctx.logger
+                ctx.model, ctx.eval_loader, ctx, device, ctx.logger
             )
 
             # Logging
