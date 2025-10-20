@@ -1,5 +1,4 @@
 data:
-  dataset_type: StandardImageDataset
   train_dir: data/bracs/train
   test_dir: data/bracs/test-retrieval
   class_mapping: {0_N: 0, 1_PB: 1, 2_UDH: 2, 3_FEA: 3, 4_ADH: 4, 5_DCIS: 5, 6_IC: 6}

@@ -1,0 +1,74 @@
+data:
+  train_dir: data/lung-colon/train
+  test_dir: data/lung-colon/test-retrieval
+  class_mapping: {colon_aca: 0, colon_n: 1, lung_aca: 2, lung_n: 3, lung_scc: 4}
+  batch_size_train: 64
+  batch_size_eval: 64
+  num_workers: 3
+  suffle_train: true
+  suffle_test: false
+model:
+  num_classes: 5
+  model_code: liu_dsh
+  model_name: liu_dsh
+  experiment_name: liu_dsh_lung-colon
+  dataloader_type: {train: SupervisedHashingDataset, test: 
+      SupervisedHashingDataset}
+  pretrained: true
+  load_checkpoint: false
+  checkpoint_path: ''
+  freeze_params: true
+  backbone: {type: resnet, model_name: resnet18, freeze_params: true}
+  code_size: 32
+  margin: 5.0
+  alpha: 0.01
+transform:
+  train:
+    resize: [224, 224]
+    horizontal_flip: true
+    color_jitter:
+      brightness: 0.4
+      contrast: 0.4
+      saturation: 0.4
+      hue: 0.1
+      probability: 0.4
+      gaussian_noise:
+        var_limit: [5.0, 30.0]
+        mean: 0.0
+        probability: 0.4
+      gaussian_blur:
+        blur_limit: [3, 7]
+        probability: 0.4
+    random_grayscale: 0.2
+    normalize:
+      mean: [0.485, 0.456, 0.406]
+      std: [0.229, 0.224, 0.225]
+    to_tensor: true
+  test:
+    resize: [224, 224]
+    normalize:
+      mean: [0.485, 0.456, 0.406]
+      std: [0.229, 0.224, 0.225]
+    to_tensor: true
+optimizer: {name: adam, lr: '3e-4', weight_decay: '1e-4'}
+loss: {name: supervised_hashing, margin: 5.0, alpha: 0.01}
+training:
+  pipeline: supervised_hashing_trainer
+  epochs: 100
+  early_stopping_patience: 10
+  val_retrieval: {n_db_images: 100, n_query_images: 5, seed: 42}
+evaluation:
+  enabled: true
+  pipeline: retrieval_evaluator
+  load_embeddings: false
+  embeddings_path: ''
+  save_embeddings: true
+  normalize_embeddings: false
+  list_of_metrics:
+  - type: map@k
+    k_values: [1, 3, 6, 9, 12, 15]
+    similarity_type: similarity
+    similarity_fn: cosine
+logging: {log_file: ./logs.txt, log_level: INFO}
+metric_logging: {tool: txt}
+output: {results_dir: ./local_experiments/liu_dsh/lung-colon}

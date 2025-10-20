@@ -2,12 +2,19 @@ model:
   model_code: <model_code>
   model_name: <model_name>
   experiment_name: <model_code>_<dataset_name>
+  dataloader_type:
+    train: ContrastiveDataset
+    test: ContrastiveDataset
   pretrained: true
   load_checkpoint: false
   checkpoint_path: ''
-  freeze_params: false
-  encoder_dim: 512
-  projection_dim: 128
+  freeze_params: true
+  backbone:
+    type: resnet
+    model_name: resnet18
+    freeze_params: true
+  hidden_dim: 512
+  out_dim: 128
   temperature: 0.07
 
 optimizer:
@@ -16,5 +23,5 @@ optimizer:
   weight_decay: 1e-4
 
 loss:
-  name: "supcon"
+  name: "supervised_contrastive"
   temperature: 0.07

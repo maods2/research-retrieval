@@ -1,5 +1,4 @@
 data:
-  dataset_type: StandardImageDataset
   train_dir: data/crc-val-he-7k/train
   test_dir: data/crc-val-he-7k/test-retrieval
   class_mapping: {ADI: 0, BACK: 1, DEB: 2, LYM: 3, MUC: 4, MUS: 5, NORM: 6, STR: 7, TUM: 8}

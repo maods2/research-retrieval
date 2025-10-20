@@ -1,5 +1,4 @@
 data:
-  dataset_type: StandardImageDataset
   train_dir: data/lung-colon/train
   test_dir: data/lung-colon/test-retrieval
   class_mapping: {colon_aca: 0, colon_n: 1, lung_aca: 2, lung_n: 3, lung_scc: 4}
