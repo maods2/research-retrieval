@@ -5,6 +5,7 @@ from losses.contrastive_loss import NTXentLoss
 from losses.contrastive_loss import ProxyNCALoss
 from losses.contrastive_loss import SupConLoss
 from losses.prototypical_loss import PrototypicalLoss
+from losses.supervised_hashing_loss import SupervisedHashingLoss
 from losses.triplet_loss import AdaptiveTripletLoss
 
 import torch.nn as nn
@@ -37,6 +38,8 @@ def get_loss(loss_config):
         loss_fn = ArcFaceLoss(loss_config)
     elif loss_name == 'npair':
         loss_fn = NPairLoss(loss_config)
+    elif loss_name == 'supervised_hashing':
+        loss_fn = SupervisedHashingLoss(loss_config)
 
     else:
         raise ValueError(f'Loss function {loss_name} is not supported')
