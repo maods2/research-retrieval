@@ -10,6 +10,7 @@ sys.path.append(
 )
 from core.base_metric_logger import BaseMetricLogger
 from core.base_trainer import BaseTrainer
+from schemas.training_context import TrainingContext
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -60,23 +61,13 @@ class SupConTrainer(BaseTrainer):
         avg_loss = running_loss / len(dataloader)
         return avg_loss
 
-    def __call__(
-        self,
-        model,
-        loss_fn,
-        optimizer,
-        train_loader,
-        test_loader,
-        config,
-        logger,
-        metric_logger: BaseMetricLogger,
-    ):
-        device = config.get(
+    def __call__(self, ctx: TrainingContext):
+        device = ctx.config.get(
             'device', 'cuda' if torch.cuda.is_available() else 'cpu'
         )
-        model.to(device)
-        epochs = config['training']['epochs']
-        patience = config['training'].get('early_stopping_patience', 10)
+        ctx.model.to(device)
+        epochs = ctx.config['training']['epochs']
+        patience = ctx.config['training'].get('early_stopping_patience', 10)
 
         min_loss = float('inf')
         epochs_without_improvement = 0
@@ -85,10 +76,10 @@ class SupConTrainer(BaseTrainer):
 
         for epoch in range(epochs):
             avg_loss = self.train_one_epoch(
-                model, loss_fn, optimizer, train_loader, device, epoch
+                ctx.model, ctx.loss_fn, ctx.optimizer, ctx.train_loader, device, epoch
             )
 
-            logger.info(f'[Epoch {epoch + 1}/{epochs}] Loss: {avg_loss:.4f}')
+            ctx.logger.info(f'[Epoch {epoch + 1}/{epochs}] Loss: {avg_loss:.4f}')
             print(f'[Epoch {epoch + 1}/{epochs}] Loss: {avg_loss:.4f}')
             train_history['loss'].append(avg_loss)
 
@@ -98,18 +89,18 @@ class SupConTrainer(BaseTrainer):
                 epochs_without_improvement,
                 checkpoint_path,
             ) = self.save_model_if_best(
-                model=model,
+                model=ctx.model,
                 metric=avg_loss,
                 best_metric=min_loss,
                 epochs_without_improvement=epochs_without_improvement,
                 checkpoint_path=checkpoint_path,
-                config=config,
-                metric_logger=metric_logger,
+                config=ctx.config,
+                metric_logger=ctx.metric_logger,
                 mode='loss',
             )
 
             if should_stop:
-                logger.info(
+                ctx.logger.info(
                     f'Early stopping triggered after {epochs_without_improvement} epochs.'
                 )
                 print(
@@ -118,9 +109,9 @@ class SupConTrainer(BaseTrainer):
                 break
 
         train_history['last_epoch_metrics'] = {'loss': avg_loss}
-        metric_logger.log_json(train_history, 'train_metrics')
+        ctx.metric_logger.log_json(train_history, 'train_metrics')
 
-        return model
+        return ctx.model
 
 
 # -------------------------

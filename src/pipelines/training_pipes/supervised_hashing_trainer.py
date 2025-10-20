@@ -67,14 +67,14 @@ class SupervisedHashingTrainer(BaseTrainer):
 
             # Update running losses
             running_loss += total_loss.item()
-            running_positive_loss += loss_dict['positive_pair_loss'].item()
-            running_negative_loss += loss_dict['negative_pair_loss'].item()
+            running_positive_loss += loss_dict['positive_loss'].item()
+            running_negative_loss += loss_dict['negative_loss'].item()
             running_regularization_loss += loss_dict['regularization_loss'].item()
 
             progress_bar.set_postfix(
                 loss=total_loss.item(),
-                pos_loss=loss_dict['positive_pair_loss'].item(),
-                neg_loss=loss_dict['negative_pair_loss'].item(),
+                pos_loss=loss_dict['positive_loss'].item(),
+                neg_loss=loss_dict['negative_loss'].item(),
                 reg_loss=loss_dict['regularization_loss'].item()
             )
 

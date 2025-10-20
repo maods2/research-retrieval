@@ -59,7 +59,7 @@ class SupervisedHashingLoss(nn.Module):
         
         return {
             'total_loss': total_loss,
-            'positive_pair_loss': mean_positive_pair_loss,
-            'negative_pair_loss': mean_negative_pair_loss,
+            'positive_loss': mean_positive_pair_loss,
+            'negative_loss': mean_negative_pair_loss,
             'regularization_loss': mean_value_regularization
         }
