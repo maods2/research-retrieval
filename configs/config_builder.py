@@ -43,10 +43,15 @@ def save_config(config, out_path):
     with open(out_path, 'w') as f:
         yaml.dump(config, f)
 
-def generate(experiments):
+def generate(experiments, test_mode=False):
     for model_code, model_name, pipeline_type, model_template, dataset_name, dataset_template in experiments:
         
-        base_config = 'base_train' if 'trainer' in pipeline_type else 'base_eval'
+        if test_mode:
+            base_config = 'base_train_test' if 'trainer' in pipeline_type else 'base_eval'
+            suffix = '_test'
+        else:
+            base_config = 'base_train' if 'trainer' in pipeline_type else 'base_eval'
+            suffix = ''
         
         base_path = Path(f'configs/templates/general/{base_config}.yml')
         data_path = Path(f'configs/templates/datasets/{dataset_template}.yml')
@@ -61,7 +66,7 @@ def generate(experiments):
             'model_name': model_name
         }
         config = build_config(base_path, model_path, data_path, replacements)
-        out_path = out_dir / f'{model_code}.yml'
+        out_path = out_dir / f'{model_code}{suffix}.yml'
         save_config(config, out_path)
         print(f'Generated: {out_path}')
 
@@ -74,12 +79,12 @@ def main():
 
 
         # Supervised Contrastive Learning (SupCon) experiments
-        ("resnet",          "resnet18",          "supcon_trainer",       "03-supcon",       "glomerulo",  "glomerulo" ),
-        ("resnet",          "resnet18",          "supcon_trainer",       "03-supcon",       "bracs",          "bracs" ),
-        ("resnet",          "resnet18",          "supcon_trainer",       "03-supcon",       "crc-val-he-7k",  "crc-val-he-7k" ),
-        ("resnet",          "resnet18",          "supcon_trainer",       "03-supcon",       "lung-colon",     "lung-colon" ),
-        ("resnet",          "resnet18",          "supcon_trainer",       "03-supcon",       "skin-cancer",    "skin-cancer" ),
-        ("resnet",          "resnet18",          "supcon_trainer",       "03-supcon",       "ubc-ovarian-cancer", "ubc-ovarian-cancer" ),
+        ("supcon",          "resnet18",          "supcon_trainer",       "03-supcon",       "glomerulo",  "glomerulo" ),
+        ("supcon",          "resnet18",          "supcon_trainer",       "03-supcon",       "bracs",          "bracs" ),
+        ("supcon",          "resnet18",          "supcon_trainer",       "03-supcon",       "crc-val-he-7k",  "crc-val-he-7k" ),
+        ("supcon",          "resnet18",          "supcon_trainer",       "03-supcon",       "lung-colon",     "lung-colon" ),
+        ("supcon",          "resnet18",          "supcon_trainer",       "03-supcon",       "skin-cancer",    "skin-cancer" ),
+        ("supcon",          "resnet18",          "supcon_trainer",       "03-supcon",       "ubc-ovarian-cancer", "ubc-ovarian-cancer" ),
         
         # Supervised Hashing experiments
         ("liu_dsh",         "liu_dsh",           "supervised_hashing_trainer", "04-supervised-hashing", "glomerulo",  "glomerulo" ),
@@ -109,8 +114,13 @@ def main():
 
     ]
     
-    # Generate configurations
-    generate(experiments)
+    # Generate regular configurations
+    print("Generating regular configurations...")
+    generate(experiments, test_mode=False)
+    
+    # Generate test configurations
+    print("\nGenerating test configurations...")
+    generate(experiments, test_mode=True)
 
 
 if __name__ == '__main__':
