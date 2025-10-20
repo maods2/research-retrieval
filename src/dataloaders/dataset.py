@@ -33,6 +33,7 @@ class StandardImageDataset(Dataset):
         """
         self.root_dir = Path(root_dir)
         self.transform = transform
+        self._transform = transform
         self.image_paths = []       # List of full paths to images
         self.labels = []            # List of integer labels
         self.one_hot_labels = []    # List of one-hot encoded labels
@@ -157,7 +158,19 @@ class StandardImageDataset(Dataset):
             image = self._transform(image=image)['image']
 
         return image, label
-
+    
+    def _open_image(self, path):
+        """
+        Open an image file and convert it to RGB format.
+        """
+        image = cv2.imread(path)
+        if image is None:
+            raise ValueError(f'Failed to load image at {path}')
+        return cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+    
+    def set_transform(self, transform):
+        self.transform = transform
+        
 if __name__ == '__main__':
     import os
     import sys
