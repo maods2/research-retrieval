@@ -49,7 +49,7 @@ train-retrieval-models:
 
 test-retrieval-models:
 	datasets="glomerulo bracs crc-val-he-7k lung-colon skin-cancer ubc-ovarian-cancer"; \
-	models="supcon liu_dsh"; \
+	models="liu_dsh supcon"; \
 	for dataset in $$datasets; do \
 		for model in $$models; do \
 			echo "Test training $$model on $$dataset"; \

@@ -48,7 +48,7 @@ class SupervisedHashingDataset(StandardImageDataset):
         )
         
         self.train = train
-        
+        self.validation_dataset = None
         # Create class indices for efficient sampling
         self.class_indices = {}
         for idx, label in enumerate(self.labels):
