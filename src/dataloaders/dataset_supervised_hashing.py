@@ -70,6 +70,9 @@ class SupervisedHashingDataset(StandardImageDataset):
             y_target: Label of second image
             target_equals: 0 if same class, 1 if different class
         """
+        if self.validation_dataset is not None:
+            return self._validation__getitem__(item)
+        
         # Get first image and label using parent class method
         x_img, x_target = super().__getitem__(item)
         

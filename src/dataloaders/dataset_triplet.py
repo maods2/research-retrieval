@@ -34,19 +34,6 @@ class TripletDataset(StandardImageDataset):
             raise ValueError(f'Failed to load image at {path}')
         return cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
-    def _validation__getitem__(self, idx):
-        """
-        Fetch a single image and its label for validation purposes.
-        """
-        image_path = self.image_paths[idx]
-        label = self.labels[idx]
-
-        # Open and transform the image
-        image = self._open_image(image_path)
-        if self.transform:
-            image = self.transform(image=image)['image']
-
-        return image, label
 
     def __getitem__(
         self, idx: int

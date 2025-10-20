@@ -144,6 +144,19 @@ class StandardImageDataset(Dataset):
         """
         self.transform = transform
 
+    def _validation__getitem__(self, idx):
+        """
+        Fetch a single image and its label for validation purposes.
+        """
+        image_path = self.image_paths[idx]
+        label = self.labels[idx]
+
+        # Open and transform the image
+        image = self._open_image(image_path)
+        if self._transform:
+            image = self._transform(image=image)['image']
+
+        return image, label
 
 if __name__ == '__main__':
     import os
