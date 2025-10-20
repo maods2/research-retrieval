@@ -25,28 +25,31 @@ def get_dataloader(config, transform_train, transforms_test):
         'dataloader_type', 'StandardImageDataset'
     )  # Default to TerumoImageDataset
 
-    # Select dataset class dynamically based on config
-    if dataset_name == 'StandardImageDataset':
-        dataset_class = StandardImageDataset
-    elif dataset_name == 'TripletDataset':
-        dataset_class = TripletDataset
-    elif dataset_name == 'FewShotFolderDataset':
-        dataset_class = FewShotFolderDataset
-    elif dataset_name == 'ContrastiveDataset':
-        dataset_class = ContrastiveDataset
-    elif dataset_name == 'SupervisedHashingDataset':
-        dataset_class = SupervisedHashingDataset
-    else:
-        raise ValueError(f'Dataset {dataset_name} is not supported.')
+    data_loaders = {"train": None, "test": None}
+    
+    for split in data_loaders.keys():
+        # Select dataset class dynamically based on config
+        if dataset_name[split] == 'StandardImageDataset':
+            data_loaders[split] = StandardImageDataset
+        elif dataset_name[split] == 'TripletDataset':
+            data_loaders[split] = TripletDataset
+        elif dataset_name[split] == 'FewShotFolderDataset':
+            data_loaders[split] = FewShotFolderDataset
+        elif dataset_name[split] == 'ContrastiveDataset':
+            data_loaders[split] = ContrastiveDataset
+        elif dataset_name[split] == 'SupervisedHashingDataset':
+            data_loaders[split] = SupervisedHashingDataset
+        else:
+            raise ValueError(f'Dataset {dataset_name[split]} is not supported.')
     # Create dataset instances for training and evaluation
-    train_dataset = dataset_class(
+    train_dataset = data_loaders['train'](
         root_dir=data_config['train_dir'],  # Directory for training data
         transform=transform_train,  # Transformations to apply
         class_mapping=data_config['class_mapping'],  # Custom class mappings
         config=config,  # Additional config for dataset
     )
 
-    test_dataset = dataset_class(
+    test_dataset = data_loaders['test'](
         root_dir=data_config['test_dir'],  # Directory for evaluation data
         transform=transforms_test,  # Transformations to apply
         class_mapping=data_config['class_mapping'],  # Custom class mappings
