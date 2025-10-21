@@ -38,14 +38,14 @@ transform:
     to_tensor: true
 model:
   model_code: supcon
-  model_name: resnet18
+  model_name: resnet50
   experiment_name: supcon_glomerulo
   dataloader_type: {train: ContrastiveDataset, test: ContrastiveDataset}
   pretrained: true
   load_checkpoint: false
   checkpoint_path: ''
   freeze_params: true
-  backbone: {type: resnet, model_name: resnet18, freeze_params: true}
+  backbone: {type: resnet, model_name: resnet50, freeze_params: true}
   hidden_dim: 512
   out_dim: 128
   temperature: 0.07
@@ -70,4 +70,4 @@ evaluation:
     similarity_fn: cosine
 logging: {log_file: ./logs.txt, log_level: INFO}
 metric_logging: {tool: txt}
-output: {results_dir: ./local_experiments/resnet18/glomerulo}
+output: {results_dir: ./local_experiments/resnet50/glomerulo}

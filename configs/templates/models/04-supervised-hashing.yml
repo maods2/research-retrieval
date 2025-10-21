@@ -11,7 +11,7 @@ model:
   freeze_params: true
   backbone:
     type: resnet
-    model_name: resnet18
+    model_name: resnet50
     freeze_params: true
   code_size: 32
   margin: 5.0

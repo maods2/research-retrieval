@@ -18,7 +18,7 @@ model:
   load_checkpoint: false
   checkpoint_path: ''
   freeze_params: true
-  backbone: {type: resnet, model_name: resnet18, freeze_params: true}
+  backbone: {type: resnet, model_name: resnet50, freeze_params: true}
   code_size: 32
   margin: 5.0
   alpha: 0.01

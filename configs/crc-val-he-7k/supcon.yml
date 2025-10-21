@@ -11,14 +11,14 @@ data:
 model:
   num_classes: 9
   model_code: supcon
-  model_name: resnet18
+  model_name: resnet50
   experiment_name: supcon_crc-val-he-7k
   dataloader_type: {train: ContrastiveDataset, test: ContrastiveDataset}
   pretrained: true
   load_checkpoint: false
   checkpoint_path: ''
   freeze_params: true
-  backbone: {type: resnet, model_name: resnet18, freeze_params: true}
+  backbone: {type: resnet, model_name: resnet50, freeze_params: true}
   hidden_dim: 512
   out_dim: 128
   temperature: 0.07
@@ -71,4 +71,4 @@ evaluation:
     similarity_fn: cosine
 logging: {log_file: ./logs.txt, log_level: INFO}
 metric_logging: {tool: txt}
-output: {results_dir: ./local_experiments/resnet18/crc-val-he-7k}
+output: {results_dir: ./local_experiments/resnet50/crc-val-he-7k}
