@@ -76,15 +76,15 @@ def main():
 
     experiments = [
     #   (model_code,        model_name,         pipeline_type,          model_template    dataset_name,   dataset_template  )                         
-
+        # Use FRIGGA to run ip 83 0r 85
 
         # Supervised Contrastive Learning (SupCon) experiments
-        ("supcon",          "resnet18",          "supcon_trainer",       "03-supcon",       "glomerulo",  "glomerulo" ),
-        ("supcon",          "resnet18",          "supcon_trainer",       "03-supcon",       "bracs",          "bracs" ),
-        ("supcon",          "resnet18",          "supcon_trainer",       "03-supcon",       "crc-val-he-7k",  "crc-val-he-7k" ),
-        ("supcon",          "resnet18",          "supcon_trainer",       "03-supcon",       "lung-colon",     "lung-colon" ),
-        ("supcon",          "resnet18",          "supcon_trainer",       "03-supcon",       "skin-cancer",    "skin-cancer" ),
-        ("supcon",          "resnet18",          "supcon_trainer",       "03-supcon",       "ubc-ovarian-cancer", "ubc-ovarian-cancer" ),
+        ("supcon",          "resnet50",          "supcon_trainer",       "03-supcon",       "glomerulo",  "glomerulo" ),
+        ("supcon",          "resnet50",          "supcon_trainer",       "03-supcon",       "bracs",          "bracs" ),
+        ("supcon",          "resnet50",          "supcon_trainer",       "03-supcon",       "crc-val-he-7k",  "crc-val-he-7k" ),
+        ("supcon",          "resnet50",          "supcon_trainer",       "03-supcon",       "lung-colon",     "lung-colon" ),
+        ("supcon",          "resnet50",          "supcon_trainer",       "03-supcon",       "skin-cancer",    "skin-cancer" ),
+        ("supcon",          "resnet50",          "supcon_trainer",       "03-supcon",       "ubc-ovarian-cancer", "ubc-ovarian-cancer" ),
         
         # Supervised Hashing experiments
         ("liu_dsh",         "liu_dsh",           "supervised_hashing_trainer", "04-supervised-hashing", "glomerulo",  "glomerulo" ),
