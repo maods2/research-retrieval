@@ -54,7 +54,7 @@ class LiuDSH(nn.Module):
         backbone_config = model_config.get('backbone', {'type': 'resnet'})
         self.backbone = get_backbone_model(backbone_config)
         
-        backbone_output_dim = self._get_backbone_output_dim(backbone_config)
+        backbone_output_dim = self._get_backbone_output_dim()
 
         
         # Hash code size
@@ -66,10 +66,10 @@ class LiuDSH(nn.Module):
             out_features=code_size
         )
     
-    def _get_backbone_output_dim(self, backbone, input_shape=(1, 3, 224, 224)):
+    def _get_backbone_output_dim(self, input_shape=(1, 3, 224, 224)):
         """Get backbone output dimension using a dummy forward pass"""
         with torch.no_grad():
-            dummy_output = backbone(torch.randn(*input_shape))
+            dummy_output = self.backbone(torch.randn(*input_shape))
         return dummy_output.shape[1]
 
     def forward(self, x):
