@@ -79,38 +79,11 @@ class SupCon(nn.Module):
             out_dim=out_dim
         )
     
-    def _get_backbone_output_dim(self, backbone_config):
-        """Get the output dimension of the backbone model."""
-        backbone_type = backbone_config.get('type', 'resnet').lower()
-        
-        if backbone_type == 'resnet':
-            model_name = backbone_config.get('model_name', 'resnet18').lower()
-            if model_name in ['resnet18', 'resnet34']:
-                return 512
-            elif model_name == 'resnet50':
-                return 2048
-        elif backbone_type == 'dino':
-            model_name = backbone_config.get('model_name', 'vit_small_patch16_224_dino').lower()
-            if 'vit_small' in model_name:
-                return 384
-            elif 'vit_base' in model_name:
-                return 768
-        elif backbone_type == 'dinov2':
-            model_name = backbone_config.get('model_name', 'dinov2_vitl14').lower()
-            if 'vitg' in model_name:
-                return 1536
-            elif 'vitl' in model_name:
-                return 1024
-            elif 'vitb' in model_name:
-                return 768
-            elif 'vits' in model_name:
-                return 384
-        elif backbone_type == 'uni':
-            # UNI models typically have 1024 dimensions
-            return 1024
-        
-        # Default fallback
-        return 512
+    def _get_backbone_output_dim(self, backbone, input_shape=(1, 3, 224, 224)):
+        """Get backbone output dimension using a dummy forward pass"""
+        with torch.no_grad():
+            dummy_output = backbone(torch.randn(*input_shape))
+        return dummy_output.shape[1]
     
     def forward(self, x):
         return self.projection_head(x)
