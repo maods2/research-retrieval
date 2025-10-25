@@ -1,7 +1,7 @@
 training:
   pipeline: <pipeline_type>
   epochs: 100
-  early_stopping_patience: 10
+  early_stopping_patience: 100
   val_retrieval:
     n_db_images: 100
     n_query_images: 5

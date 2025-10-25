@@ -55,7 +55,7 @@ loss: {name: supervised_hashing, margin: 5.0, alpha: 0.01}
 training:
   pipeline: supervised_hashing_trainer
   epochs: 100
-  early_stopping_patience: 10
+  early_stopping_patience: 100
   val_retrieval: {n_db_images: 100, n_query_images: 5, seed: 42}
 evaluation:
   enabled: true
