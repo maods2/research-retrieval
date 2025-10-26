@@ -94,6 +94,24 @@ def main():
         ("liu_dsh",         "liu_dsh",           "supervised_hashing_trainer", "04-supervised-hashing", "skin-cancer",    "skin-cancer" ),
         ("liu_dsh",         "liu_dsh",           "supervised_hashing_trainer", "04-supervised-hashing", "ubc-ovarian-cancer", "ubc-ovarian-cancer" ),
         
+        
+        # Autoencoder experiments
+        ("autoencoder",     "resnet50",          "autoencoder_trainer",  "06-autoencoder",  "glomerulo",  "glomerulo" ),
+        ("autoencoder",     "resnet50",          "autoencoder_trainer",  "06-autoencoder",  "bracs",          "bracs" ),
+        ("autoencoder",     "resnet50",          "autoencoder_trainer",  "06-autoencoder",  "crc-val-he-7k",  "crc-val-he-7k" ),
+        ("autoencoder",     "resnet50",          "autoencoder_trainer",  "06-autoencoder",  "lung-colon",     "lung-colon" ),
+        ("autoencoder",     "resnet50",          "autoencoder_trainer",  "06-autoencoder",  "skin-cancer",    "skin-cancer" ),
+        ("autoencoder",     "resnet50",          "autoencoder_trainer",  "06-autoencoder",  "ubc-ovarian-cancer", "ubc-ovarian-cancer" ),   
+        
+        
+        # Triplet Loss experiments
+        ("triplet",         "resnet50",          "triplet_trainer",        "05-triplet",      "glomerulo",  "glomerulo" ),
+        ("triplet",         "resnet50",          "triplet_trainer",        "05-triplet",      "bracs",          "bracs" ),
+        ("triplet",         "resnet50",          "triplet_trainer",       "05-triplet",      "crc-val-he-7k",  "crc-val-he-7k" ),
+        ("triplet",         "resnet50",          "triplet_trainer",       "05-triplet",      "lung-colon",     "lung-colon" ),
+        ("triplet",         "resnet50",          "triplet_trainer",       "05-triplet",      "skin-cancer",    "skin-cancer" ),
+        ("triplet",         "resnet50",          "triplet_trainer",       "05-triplet",      "ubc-ovarian-cancer", "ubc-ovarian-cancer" ),
+        
         # ("dino",            "dino",             "default_trainer",      "00-default",      "skin-cancer",  "skin-cancer" ),
         # ("dinov2",          "dinov2",           "default_trainer",      "00-default",      "skin-cancer",  "skin-cancer" ),
         # ("vit",             "vit",              "default_trainer",      "00-default",      "skin-cancer",  "skin-cancer" ),
