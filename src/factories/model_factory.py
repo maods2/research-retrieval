@@ -7,8 +7,9 @@ sys.path.append(
 )
 
 
+from models.autoencoder import Autoencoder
 from src.models.liu_dsh import LiuDSH
-from src.models.supcon import SupCon
+from src.models.supcon import ProjectionHead, SupCon
 from src.models.dino import DINO
 from src.models.dino import DINOv2
 from src.models.fsl_models import DinoFsl
@@ -19,7 +20,7 @@ from src.models.fsl_models import UNIFsl
 from src.models.fsl_models import Virchow2Fsl
 from src.models.fsl_models import ViTFsl
 from src.models.phikon import Phikon
-from src.models.resnet import ResNet
+from src.models.resnet import ResNet, get_resnet_backbone
 from src.models.uni import UNI
 from src.models.virchow2 import Virchow2
 from src.models.vit import ViT
@@ -63,6 +64,24 @@ def get_model(model_config):
     
     elif model_code == 'supcon':   # Supervised Contrastive Learning
         model = SupCon(model_config)
+
+    elif model_code == "triplet":
+        backbone = get_resnet_backbone(model_config)
+        model = ProjectionHead(
+            base_model=backbone,
+            hidden_dim=model_config.get("hidden_dim", 512),
+            out_dim=model_config.get("out_dim", 128),
+        )
+
+    elif model_code == "autoencoder":
+        backbone = get_resnet_backbone(model_config)
+        model = Autoencoder(
+            backbone,
+            encoder_dim=model_config.get("encoder_dim", 512),
+            decoder_channels=model_config.get("decoder_channels", 512),
+            decoder_h=model_config.get("decoder_h", 8),
+            decoder_w=model_config.get("decoder_w", 8),
+        )
 
     ################### Few-Shot Learning Models ######################################
 

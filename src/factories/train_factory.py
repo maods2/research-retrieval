@@ -20,6 +20,16 @@ def get_train_function(config):
 
         return SupervisedHashingTrainer(config)
 
+    elif config['training']['pipeline'] == 'triplet_trainer':
+        from pipelines.training_pipes.triplet_trainer import TripletTrainer
+
+        return TripletTrainer(config)
+    
+    elif config['training']['pipeline'] == 'autoencoder_trainer':
+        from pipelines.training_pipes.autoencoder_trainer import AutoencoderTrainer
+
+        return AutoencoderTrainer(config)
+    
     else:
         raise ValueError(
             f'Training pipeline {config["training"]["pipeline"]} is not supported'

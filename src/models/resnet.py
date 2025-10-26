@@ -105,6 +105,22 @@ class ResNet(nn.Module):
         return self.model(x)
 
 
+def get_resnet_backbone(model_config):
+    """
+    Returns the appropriate ResNet backbone based on model_config['model_name'].
+    """
+    name = model_config.get("model_name", "").lower()
+
+    if name == "resnet18":
+        return ResNet18(model_config)
+    elif name == "resnet34":
+        return ResNet34(model_config)
+    elif name == "resnet50":
+        return ResNet50(model_config)
+    else:
+        raise ValueError(f"Unsupported ResNet model: '{name}'")
+
+
 if __name__ == '__main__':
     x = torch.randn(1, 3, 224, 224)  # Example input tensor
     model = ResNet18()
