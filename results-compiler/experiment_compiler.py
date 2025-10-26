@@ -97,13 +97,16 @@ class ExperimentCompiler:
         """Compile results from all latest experiments.
 
         Results grouped by dataset -> model -> { timestamp, metrics }
+        Adds per-dataset "map_series" with:
+          - ks: sorted list of k (e.g. [1,3,5])
+          - <method>: list of map@k values in the same order (None if missing)
         """
         latest_experiments = self._get_latest_experiments()
         compiled_results = {}
-        
+
         for (model, dataset), exp_info in latest_experiments.items():
             metrics = self._load_metrics(exp_info["path"])
-            
+
             if metrics:
                 if dataset not in compiled_results:
                     compiled_results[dataset] = {}
@@ -111,7 +114,30 @@ class ExperimentCompiler:
                     "timestamp": exp_info["timestamp"].isoformat(),
                     "metrics": metrics
                 }
-                
+
+        # build per-dataset map@k series for plotting
+        for dataset, models in compiled_results.items():
+            # collect all mapAtX keys available across methods
+            ks_set = set()
+            for model_info in models.values():
+                mapc = model_info.get("metrics", {}).get("map_compiled", {}) or {}
+                for key in mapc.keys():
+                    if key.startswith("mapAt"):
+                        try:
+                            ks_set.add(int(key[5:]))
+                        except ValueError:
+                            pass
+            ks = sorted(ks_set)
+
+            map_series = {"ks": ks}
+            for model_name, model_info in models.items():
+                mapc = model_info.get("metrics", {}).get("map_compiled", {}) or {}
+                values = [mapc.get(f"mapAt{k}") for k in ks]
+                map_series[model_name] = values
+
+            # attach summary under the dataset entry
+            compiled_results[dataset]["map_series"] = map_series
+
         return compiled_results
 
     def save_results(self, results: Dict, output_path: str):
