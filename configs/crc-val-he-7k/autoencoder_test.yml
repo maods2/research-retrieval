@@ -1,0 +1,74 @@
+data:
+  train_dir: data/crc-val-he-7k/train
+  test_dir: data/crc-val-he-7k/test-retrieval
+  class_mapping: {ADI: 0, BACK: 1, DEB: 2, LYM: 3, MUC: 4, MUS: 5, NORM: 6, STR: 
+      7, TUM: 8}
+  batch_size_train: 64
+  batch_size_eval: 64
+  num_workers: 3
+  suffle_train: true
+  suffle_test: false
+model:
+  num_classes: 9
+  model_code: autoencoder
+  model_name: resnet50
+  experiment_name: autoencoder_crc-val-he-7k
+  dataloader_type: {train: StandardImageDataset, test: StandardImageDataset}
+  pretrained: true
+  load_checkpoint: false
+  checkpoint_path: ''
+  freeze_params: true
+  encoder_dim: 2048
+  decoder_channels: 2048
+  decoder_h: 8
+  decoder_w: 8
+transform:
+  train:
+    resize: [224, 224]
+    horizontal_flip: true
+    color_jitter:
+      brightness: 0.4
+      contrast: 0.4
+      saturation: 0.4
+      hue: 0.1
+      probability: 0.4
+      gaussian_noise:
+        var_limit: [5.0, 30.0]
+        mean: 0.0
+        probability: 0.4
+      gaussian_blur:
+        blur_limit: [3, 7]
+        probability: 0.4
+    random_grayscale: 0.2
+    normalize:
+      mean: [0.485, 0.456, 0.406]
+      std: [0.229, 0.224, 0.225]
+    to_tensor: true
+  test:
+    resize: [224, 224]
+    normalize:
+      mean: [0.485, 0.456, 0.406]
+      std: [0.229, 0.224, 0.225]
+    to_tensor: true
+optimizer: {name: adam, lr: '1e-3', weight_decay: '1e-4'}
+loss: {name: mse}
+training:
+  pipeline: autoencoder_trainer
+  epochs: 1
+  early_stopping_patience: 1
+  val_retrieval: {n_db_images: 10, n_query_images: 5, seed: 42}
+evaluation:
+  enabled: true
+  pipeline: retrieval_evaluator
+  load_embeddings: false
+  embeddings_path: ''
+  save_embeddings: true
+  normalize_embeddings: false
+  list_of_metrics:
+  - type: map@k
+    k_values: [1, 3, 5]
+    similarity_type: similarity
+    similarity_fn: cosine
+logging: {log_file: ./logs.txt, log_level: INFO}
+metric_logging: {tool: txt}
+output: {results_dir: ./local_experiments/crc-val-he-7k/autoencoder}
