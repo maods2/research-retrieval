@@ -94,7 +94,10 @@ class ExperimentCompiler:
         return metrics
 
     def compile_results(self) -> Dict:
-        """Compile results from all latest experiments."""
+        """Compile results from all latest experiments.
+
+        Results grouped by dataset -> model -> { timestamp, metrics }
+        """
         latest_experiments = self._get_latest_experiments()
         compiled_results = {}
         
@@ -102,9 +105,9 @@ class ExperimentCompiler:
             metrics = self._load_metrics(exp_info["path"])
             
             if metrics:
-                if model not in compiled_results:
-                    compiled_results[model] = {}
-                compiled_results[model][dataset] = {
+                if dataset not in compiled_results:
+                    compiled_results[dataset] = {}
+                compiled_results[dataset][model] = {
                     "timestamp": exp_info["timestamp"].isoformat(),
                     "metrics": metrics
                 }
