@@ -72,4 +72,4 @@ evaluation:
     similarity_fn: cosine
 logging: {log_file: ./logs.txt, log_level: INFO}
 metric_logging: {tool: txt}
-output: {results_dir: ./local_experiments/liu_dsh/bracs}
+output: {results_dir: ./local_experiments/bracs/liu_dsh}

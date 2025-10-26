@@ -71,4 +71,4 @@ evaluation:
     similarity_fn: cosine
 logging: {log_file: ./logs.txt, log_level: INFO}
 metric_logging: {tool: txt}
-output: {results_dir: ./local_experiments/resnet50/crc-val-he-7k}
+output: {results_dir: ./local_experiments/crc-val-he-7k/resnet50}

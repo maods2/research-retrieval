@@ -70,4 +70,4 @@ evaluation:
     similarity_fn: cosine
 logging: {log_file: ./logs.txt, log_level: INFO}
 metric_logging: {tool: txt}
-output: {results_dir: ./local_experiments/resnet50/glomerulo}
+output: {results_dir: ./local_experiments/glomerulo/resnet50}

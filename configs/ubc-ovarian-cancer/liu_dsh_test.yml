@@ -71,4 +71,4 @@ evaluation:
     similarity_fn: cosine
 logging: {log_file: ./logs.txt, log_level: INFO}
 metric_logging: {tool: txt}
-output: {results_dir: ./local_experiments/liu_dsh/ubc-ovarian-cancer}
+output: {results_dir: ./local_experiments/ubc-ovarian-cancer/liu_dsh}
