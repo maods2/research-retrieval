@@ -18,5 +18,5 @@ metric_logging:
   tool: txt # txt, mlflow
 
 output:
-  results_dir: ./local_experiments/<dataset_name>/<model_name>
+  results_dir: ./local_experiments/<dataset_name>/<model_code>
 

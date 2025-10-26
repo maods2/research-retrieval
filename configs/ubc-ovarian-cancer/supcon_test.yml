@@ -70,4 +70,4 @@ evaluation:
     similarity_fn: cosine
 logging: {log_file: ./logs.txt, log_level: INFO}
 metric_logging: {tool: txt}
-output: {results_dir: ./local_experiments/ubc-ovarian-cancer/resnet50}
+output: {results_dir: ./local_experiments/ubc-ovarian-cancer/supcon}
