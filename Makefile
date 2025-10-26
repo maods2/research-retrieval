@@ -35,7 +35,7 @@ train-all-models:
 
 train-retrieval-models:
 	datasets="glomerulo bracs crc-val-he-7k lung-colon skin-cancer ubc-ovarian-cancer"; \
-	models="supcon liu_dsh"; \
+	models="triplet autoencoder"; \
 	for dataset in $$datasets; do \
 		for model in $$models; do \
 			echo "Training $$model on $$dataset"; \
@@ -49,7 +49,7 @@ train-retrieval-models:
 
 test-retrieval-models:
 	datasets="glomerulo bracs crc-val-he-7k lung-colon skin-cancer ubc-ovarian-cancer"; \
-	models="liu_dsh supcon"; \
+	models="models="liu_dsh supcon triplet autoencoder"; \
 	for dataset in $$datasets; do \
 		for model in $$models; do \
 			echo "Test training $$model on $$dataset"; \
