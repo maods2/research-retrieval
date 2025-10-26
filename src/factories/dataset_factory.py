@@ -37,22 +37,35 @@ def get_dataset(config, transform_train: Optional[Callable] = None, transform_te
     else:
         raise ValueError(f'Dataset {dataset_name} is not supported.')
 
-    # Create dataset instances for training and evaluation
-    train_dataset = dataset_class(
-        root_dir=data_config['train_dir'],  # Directory for training data
-        transform=transform_train,  # Transformations to apply
-        class_mapping=data_config['class_mapping'],  # Custom class mappings
-        config=config,  # Additional config for dataset
-    )
 
-    test_dataset = dataset_class(
-        root_dir=data_config['test_dir'],  # Directory for evaluation data
-        transform=transform_test,  # Transformations to apply
-        class_mapping=data_config['class_mapping'],  # Custom class mappings
-        config=config,  # Additional config for dataset
-    )
+    if dataset_class != EmbeddingDataset:
+        # Create dataset instances for training and evaluation
+        train_dataset = dataset_class(
+            root_dir=data_config['train_dir'],  # Directory for training data
+            transform=transform_train,  # Transformations to apply
+            class_mapping=data_config['class_mapping'],  # Custom class mappings
+            config=config,  # Additional config for dataset
+        )
 
-    return train_dataset, test_dataset
+        test_dataset = dataset_class(
+            root_dir=data_config['test_dir'],  # Directory for evaluation data
+            transform=transform_test,  # Transformations to apply
+            class_mapping=data_config['class_mapping'],  # Custom class mappings
+            config=config,  # Additional config for dataset
+        )
+        return train_dataset, test_dataset
+    else: # HACK
+        embedding_dataset = EmbeddingDataset( 
+            root_dir=data_config['data_path'],
+            transform=transform_train,
+            class_mapping=data_config['class_mapping'],
+            config=config,
+            test_split=data_config['train_test_split']
+        )
+
+        return embedding_dataset, embedding_dataset
+        
+
 
 def get_dataloader(config, transform_train: Optional[Callable] = None, transform_test: Optional[Callable] = None):
     """

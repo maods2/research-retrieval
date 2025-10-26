@@ -25,19 +25,20 @@ CUSTOM_SIM_REGISTRY = {
 # ---------------------------
 # Similarity function factory
 # ---------------------------
-def get_similarity_function(metric_config: Dict, config: Dict) -> Callable:
-    """Returns a similarity function based on the config."""
-    similarity_fn = metric_config.get("similarity_fn")
-
-    if similarity_fn == "cosine":
+def get_similarity_function(similarity_fn: str):
+    if similarity_fn.startswith("cosine"):
         return cosine_similarity
-    elif similarity_fn == "euclidean":
+    elif similarity_fn.startswith("euclidean"):
         return euclidean_distances
     elif similarity_fn in CUSTOM_SIM_REGISTRY:
         return CUSTOM_SIM_REGISTRY[similarity_fn]
-    
     else:
         raise ValueError(f"Similarity function '{similarity_fn}' is not supported.")
+
+def get_similarity_function_from_config(metric_config: Dict, config: Dict) -> Callable:
+    """Returns a similarity function based on the config."""
+    similarity_fn = metric_config.get("similarity_fn")
+    return get_similarity_function(similarity_fn)
 
 
 def _load_learned_similarity(config: Dict) -> Callable:
@@ -65,7 +66,7 @@ def create_metric_instance(metric_type: str, metric_config: Dict, config: Dict) 
     MetricClass = getattr(importlib.import_module(module_path), class_name)
 
     # Resolve similarity function
-    sim_fn = get_similarity_function(metric_config, config)
+    sim_fn = get_similarity_function_from_config(metric_config, config)
     similarity_type = metric_config.get("similarity_type")  # 'similarity' or 'distance'
     m_conf_copy = metric_config.copy()
     m_conf_copy["similarity_fn"] = (sim_fn, similarity_type)

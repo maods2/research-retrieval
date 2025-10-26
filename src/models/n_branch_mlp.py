@@ -19,13 +19,6 @@ class N_BranchMLP(nn.Module):
     No activation on the last layer
     """
     def __init__(self, model_config: dict[str, Any], dtype: torch.dtype = torch.float32):
-        # n: int,
-        # input_dim: int,
-        # mlp_layers: list[int],
-        # mlp_activation: str = "relu",
-        # dropout: list[float] | None = None,
-        # activation_params: dict[str, Any] = dict(),
-        # dtype: torch.dtype = torch.float32):
         super(N_BranchMLP, self).__init__()
         if model_config.get('dropout') is not None and len(model_config['dropout']) != len(model_config['mlp_layers']):
             raise ValueError(f"Dropout vector does not match layer sequence: got {model_config['dropout']} and {model_config['mlp_layers']}")
@@ -72,8 +65,8 @@ class N_BranchMLP(nn.Module):
         :return: matrix (N, d_k) of transformed embeddings
         """
         if len(args) != len(self.mlps):
-            raise ValueError(f"Insufficient tensors to forward function: expected {len(self.mlps)} tensors (N, d)")
-
+                raise ValueError(f"Insufficient tensors to forward function: expected {len(self.mlps)} tensors (N, d)")
+            
         out_tensors = []
         for mlp, x in zip(self.mlps, args):
             if len(x.shape) != 2:
@@ -84,4 +77,5 @@ class N_BranchMLP(nn.Module):
             for layer in mlp:
                 x = layer(x)
             out_tensors.append(x)
+
         return out_tensors

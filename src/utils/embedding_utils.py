@@ -2,15 +2,12 @@ from factories.transform_factory import get_transforms
 from torch.utils.data import DataLoader
 from torch.utils.data import Subset
 from tqdm import tqdm
-from typing import Any
-from typing import Dict
-from typing import Tuple
+from typing import Any, Dict, Tuple, Callable
 
 import numpy as np
 import os
 import time
 import torch
-
 
 def invert_dict(d):
     """Convert a dictionary to an inverted dictionary where keys become values and values become keys."""
@@ -221,13 +218,7 @@ def load_or_create_embeddings(
     logger.info(f'Using device: {device}')
 
     if config['evaluation'].get('load_embeddings', False):
-        logger.info(
-            f"Loading embeddings from {config['evaluation']['embeddings_path']}"
-        )
-        embeddings = np.load(
-            config['evaluation']['embeddings_path'], allow_pickle=True
-        )
-        return embeddings, config['evaluation']['embeddings_path']
+        return load_embeddings(config['evaluation']['embeedings_path'], logger)
 
     logger.info('Creating new embeddings...')
     embeddings, file_path = create_embeddings_dict(
@@ -235,3 +226,18 @@ def load_or_create_embeddings(
     )
     config['evaluation']['embeddings_path'] = file_path
     return embeddings
+
+def load_embeddings(embeddings_path: str, logger: Callable = print) -> tuple[np.lib.npyio.NpzFile, str]:
+    try:
+        logger = logger.info
+    except AttributeError:
+        pass
+
+    logger(
+        f"Loading embeddings from {embeddings_path}"
+    )
+
+    embeddings = np.load(
+        embeddings_path, allow_pickle=True
+    )
+    return embeddings, embeddings_path

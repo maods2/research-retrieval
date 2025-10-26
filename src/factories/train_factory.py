@@ -9,8 +9,8 @@ def get_train_function(config):
         case 'fsl_trainer':
             return pipelines.FewShotTrainer(config)
 
-        case 'terumo_prototypical_trainer':
-            return pipelines.terumo.PrototypicalRetrievalTrainer(config)
+        case 'terumo_trainer':
+            return pipelines.TerumoConstrativeTrainer(config)
 
         case _:
             raise ValueError(
