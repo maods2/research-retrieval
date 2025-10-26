@@ -45,33 +45,13 @@ RUN apt-get update && \
 
 
 RUN apt-get install -y unzip htop
-# Update pip
+
 RUN pip install --upgrade pip
 
-# Install latest release PyTorch (PyTorch must be installed before any DeepSpeed c++/cuda ops.)
-# RUN pip install --no-cache-dir -U torch==${PYTORCH} torchvision torchaudio --extra-index-url https://download.pytorch.org/whl/${CUDA}
-# RUN pip install --no-cache-dir -U torch torchvision torchaudio --extra-index-url https://download.pytorch.org/whl/${CUDA}
+RUN pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
 
-
-# RUN pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
-# Install Hugging Face Libraries
-# RUN pip install --upgrade --no-cache-dir \
-#     transformers[sklearn,sentencepiece,vision]==${TRANSFORMERS} \
-#     diffusers==${DIFFUSERS} \
-#     datasets==${DATASETS} \
-#     accelerate==${ACCELERATE} \
-#     evaluate==${EVALUATE} \
-#     peft==${PEFT} \
-#     trl==${TRL} \
-#     sentence-transformers==${SENTENCE_TRANSFORMERS} \
-#     deepspeed==${DEEPSPEED} \
-#     bitsandbytes==${BITSANDBYTES} \
-#     tensorboard \
-#     jupyter notebook
-
-# COPY requirements.txt requirements.txt
-# # Install Google Cloud Dependencies
-# RUN pip install -r requirements.txt
+COPY requirements.txt requirements.txt
+RUN pip install -r requirements.txt
 
 RUN apt-get update && apt-get install -y unzip
 RUN pip install gdown

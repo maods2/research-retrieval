@@ -1,4 +1,4 @@
-FROM nvidia/cuda:12.2.2-devel-ubuntu22.04
+FROM nvidia/cuda:12.6.3-devel-ubuntu22.04
 
 ARG DEBIAN_FRONTEND=noninteractive
 
@@ -45,10 +45,10 @@ RUN apt-get update && \
 
 
 RUN apt-get install -y unzip htop
-
+# Update pip
 RUN pip install --upgrade pip
 
-RUN pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
+RUN pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu126
 
 COPY requirements.txt requirements.txt
 RUN pip install -r requirements.txt
