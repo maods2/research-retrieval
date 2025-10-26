@@ -125,6 +125,11 @@ download-models:
 	make download-phikon-v2
 	make download-phikon
 
+# ============================
+# Experiments
+# ============================
+compile-exp:
+	python3 results-compiler/compile_results.py
 
 # ============================
 # Linting Targets
