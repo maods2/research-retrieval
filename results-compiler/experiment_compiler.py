@@ -96,7 +96,7 @@ class ExperimentCompiler:
     def compile_results(self) -> Dict:
         """Compile results from all latest experiments.
 
-        Results grouped by dataset -> model -> { timestamp, metrics }
+        Results grouped by dataset -> models -> model -> { timestamp, metrics }
         Adds per-dataset "map_series" with:
           - ks: sorted list of k (e.g. [1,3,5])
           - <method>: list of map@k values in the same order (None if missing)
@@ -109,14 +109,16 @@ class ExperimentCompiler:
 
             if metrics:
                 if dataset not in compiled_results:
-                    compiled_results[dataset] = {}
-                compiled_results[dataset][model] = {
+                    compiled_results[dataset] = {"models": {}}
+                compiled_results[dataset]["models"][model] = {
                     "timestamp": exp_info["timestamp"].isoformat(),
                     "metrics": metrics
                 }
 
         # build per-dataset map@k series for plotting
-        for dataset, models in compiled_results.items():
+        for dataset, data_entry in compiled_results.items():
+            models = data_entry.get("models", {})
+
             # collect all mapAtX keys available across methods
             ks_set = set()
             for model_info in models.values():
