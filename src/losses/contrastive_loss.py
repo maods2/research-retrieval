@@ -208,6 +208,7 @@ class SupervisedContrastiveAttention(torch.nn.Module):
     def __init__(self, loss_config: dict[str, Any]):  # NOTE: this default is common in papers
         super().__init__()
         self.temperature = loss_config.get("temperature", 0.7) 
+        # NOTE: similarities from factory use sklearn, we need torch implementation
         #sim_fn = loss_config.get("pairwise_similarity_fn")
         #self.pairwise_similarity = get_similarity_function(sim_fn) if sim_fn else torch.cosine_similarity
         self.pairwise_similarity = self._pairwise_cosine_sim

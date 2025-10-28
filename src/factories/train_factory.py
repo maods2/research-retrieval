@@ -10,7 +10,7 @@ def get_train_function(config):
             return pipelines.FewShotTrainer(config)
 
         case 'terumo_trainer':
-            return pipelines.TerumoConstrativeTrainer(config)
+            return pipelines.TerumoContrastiveTrainer(config)
 
         case _:
             raise ValueError(

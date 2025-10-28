@@ -9,11 +9,13 @@ from tqdm import tqdm
 
 from core.base_metric_logger import BaseMetricLogger
 from core.base_trainer import BaseTrainer
+from factories.metric_factory import get_similarity_function, get_similarity_function_from_config
 from models.n_branch_mlp import N_BranchMLP
 from metrics.map_at_k import MapAtK
 from schemas.training_context import TrainingContext
+from utils.debug_utils import print_grad_stats
 
-class TerumoConstrativeTrainer(BaseTrainer):
+class TerumoContrastiveTrainer(BaseTrainer):
     def __init__(self, config: dict):
         super().__init__()
         self.config = config
@@ -26,7 +28,29 @@ class TerumoConstrativeTrainer(BaseTrainer):
         logger: Optional[Callable] = None,
     ) -> Dict[str, Any]:
         """Evaluate the model on the given dataloader."""
-        #TODO
+        # dummy test: MAP@k against itself
+        model.eval().to(device)
+        embeddings = []
+        labels = []
+        with torch.no_grad():
+            for inputs, targets in tqdm(dataloader, desc='Evaluating'):
+                inputs = inputs.to(device)
+                outputs = model(*[inputs]*len(model.mlps))
+                # Use the first branch for evaluation
+                emb = outputs[0].cpu().numpy()
+                targets = targets.cpu().numpy()
+                embeddings.append(emb)
+                labels.append(targets)
+        embeddings = np.vstack(embeddings)
+        labels = np.hstack(labels)
+        metric = MapAtK(k_values=[10], similarity_fn=(get_similarity_function('cosine'), 'cosine'))
+        metric.map_at_k({
+            'query_embeddings': embeddings,
+            'query_labels': labels,
+            'db_embeddings': embeddings,
+            'db_labels': labels,
+        })
+        model.train()  # to enable dropout if any
         return {}
 
     # --------------------------
@@ -52,10 +76,11 @@ class TerumoConstrativeTrainer(BaseTrainer):
             loss = loss_fn(outputs, [labels]*len(model.mlps))
 
             loss.backward()
+            print_grad_stats(model, progress_bar, loss=loss.item())
             optimizer.step()
 
             running_loss += loss.item()
-            progress_bar.set_postfix(loss=loss.item())
+            # progress_bar.set_postfix(loss=loss.item())
 
         avg_loss = running_loss / len(train_loader)
         return avg_loss
