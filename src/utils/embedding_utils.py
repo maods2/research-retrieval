@@ -126,6 +126,7 @@ def create_embeddings_dict(
         train_loader.dataset.k_shot = 1
         test_loader.dataset.k_shot = 1
 
+    # set transforms to test transforms for eval
     train_loader.dataset.set_transform(
         get_transforms(config['transform'].get('test', None))
     )

@@ -1,6 +1,6 @@
 data:
   dataset_type: EmbeddingDataset
-  train_dir: ./data/glomerulus/train
+  train_dir: ./data/glomerulus/test  # TODO CHANGE TO TRAIN
   test_dir: ./data/glomerulus/test
   embedding_model: uni
   class_mapping: {Crescent: 0, Hypercelularidade: 1, Membranous: 2, Normal: 3, Podocitopatia: 4, Sclerosis: 5}
@@ -59,8 +59,7 @@ model:
   load_checkpoint: false # If true, load the checkpoint specified below
   checkpoint_path: ''
   freeze_params: true
-  encoder_dim: 2048
-  decoder_channels: 128
+  encoder_dim: 1024
 
   # N_BRANCH_MLP
   n_mlp_branches: 2

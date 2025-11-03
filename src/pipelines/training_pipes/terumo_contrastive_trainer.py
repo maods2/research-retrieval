@@ -76,9 +76,10 @@ class TerumoContrastiveTrainer(BaseTrainer):
             loss = loss_fn(outputs, [labels]*len(model.mlps))
 
             loss.backward()
-            print_grad_stats(model, progress_bar, loss=loss.item())
+            # print(loss.item())
+            per_img_loss = loss.item() / len(inputs)
+            print_grad_stats(model, progress_bar, per_img_loss=per_img_loss)
             optimizer.step()
-
             running_loss += loss.item()
             # progress_bar.set_postfix(loss=loss.item())
 

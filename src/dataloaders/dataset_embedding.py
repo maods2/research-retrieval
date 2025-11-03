@@ -2,6 +2,8 @@ import os
 import pathology_foundation_models as pfm
 import torchvision.transforms as T
 import torch
+import albumentations as A
+import numpy as np
 
 from torch.utils.data import Dataset
 from torchvision.datasets import ImageFolder
@@ -14,7 +16,7 @@ class EmbeddingDataset(Dataset):
         self,
         root_dir: str,
         config: dict[str, Any],
-        transform: Callable[..., Any] | None = None, 
+        transform: A.Compose,
         class_mapping: dict[str, int] | None = None, 
         # shuffle_generator: Generator | None = None,
         device: str = "cuda",
@@ -29,19 +31,12 @@ class EmbeddingDataset(Dataset):
         super().__init__()
         assert os.path.exists(root_dir), f"Received invalid directory: {root_dir}"
 
-        # TODO make schema more explicit. For now we use this HACK
+        # HACK to integrate albumentations with torchvision. This is kind of bad
+        self.transform = T.Lambda(lambda img: transform(image=np.array(img))['image'])
+        self._full_dataset = ImageFolder(root=root_dir, transform=self.transform)
+
+        # TODO make schema more explicit to avoid direct dict access?
         self.foundation_model = config['data']["embedding_model"]
-        self._full_dataset = ImageFolder(
-            root = root_dir, 
-            # HACK for now only support the most basic transform
-            transform = T.Compose([
-                T.Resize(config['transform']['train']['resize']),
-                T.Normalize(mean=config['transform']['train']['normalize']['mean'],
-                            std=config['transform']['train']['normalize']['std']),
-                T.ToTensor()
-            ])
-        )
-        self.transform = transform
         self.class_mapping = class_mapping
         # self.shuffle_generator = shuffle_generator
         self.device = device
@@ -65,8 +60,9 @@ class EmbeddingDataset(Dataset):
             num_workers=num_workers,
             display_progress=True   
         )
-        self.embeddings = dataset.embeddings
-        self.labels = dataset.labels
+        # move to cpu to be more generally available + compatibility with pin_memory options
+        self.embeddings = dataset.embeddings.to("cpu")
+        self.labels = dataset.labels.to("cpu")
 
     # def _create_subsets(self, dataset: ImageFolder):
     #     # list of indices. Made this way to avoid messing with positioning
@@ -89,3 +85,6 @@ class EmbeddingDataset(Dataset):
 
     def __getitem__(self, idx: int) -> tuple[torch.Tensor, torch.Tensor]:
         return (self.embeddings[idx], self.labels[idx])
+
+    def set_transform(self, transform: Callable[..., Any] | None):
+        self.transform = transform

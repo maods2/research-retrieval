@@ -24,7 +24,7 @@ class N_BranchMLP(nn.Module):
             raise ValueError(f"Dropout vector does not match layer sequence: got {model_config['dropout']} and {model_config['mlp_layers']}")
 
         self.n_branches = model_config.get('n_mlp_branches') or model_config['model_code'].split('_')[0]
-        self.input_dim  = model_config['decoder_channels']
+        self.input_dim  = model_config['encoder_dim']
         self.mlp_layers = model_config['mlp_layers']
         self.activation = model_config['mlp_activation']
         self.d_k        = model_config['mlp_layers'][-1]
