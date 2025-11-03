@@ -15,7 +15,7 @@ model:
   dataloader_type: {train: TripletDataset, test: TripletDataset}
   pretrained: true
   load_checkpoint: true
-  checkpoint_path: '.local_experiments/lung-colon/triplet/triplet_lung-colon_2025-10-27_00-16-08/triplet_lung-colon_default_model_2025-10-27_00-18-00_checkpoint.pth'
+  checkpoint_path: './local_experiments/lung-colon/triplet/triplet_lung-colon_2025-10-27_00-16-08/triplet_lung-colon_default_model_2025-10-27_00-18-00_checkpoint.pth'
   freeze_params: true
   hidden_dim: 2048
   out_dim: 1024
