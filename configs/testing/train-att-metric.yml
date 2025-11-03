@@ -1,6 +1,8 @@
 data:
   dataset_type: EmbeddingDataset
-  data_path: ./local_experiments/uni_fsl/glomerulus/uni_fsl_glomerulus_2025-10-18_17-33-36/embeddings_2025-10-18_17-44-06.npz
+  train_dir: ./data/glomerulus/train
+  test_dir: ./data/glomerulus/test
+  embedding_model: uni
   class_mapping: {Crescent: 0, Hypercelularidade: 1, Membranous: 2, Normal: 3, Podocitopatia: 4, Sclerosis: 5}
   batch_size_train: 32
   batch_size_eval: 64

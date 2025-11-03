@@ -28,29 +28,29 @@ class TerumoContrastiveTrainer(BaseTrainer):
         logger: Optional[Callable] = None,
     ) -> Dict[str, Any]:
         """Evaluate the model on the given dataloader."""
-        # dummy test: MAP@k against itself
-        model.eval().to(device)
-        embeddings = []
-        labels = []
-        with torch.no_grad():
-            for inputs, targets in tqdm(dataloader, desc='Evaluating'):
-                inputs = inputs.to(device)
-                outputs = model(*[inputs]*len(model.mlps))
-                # Use the first branch for evaluation
-                emb = outputs[0].cpu().numpy()
-                targets = targets.cpu().numpy()
-                embeddings.append(emb)
-                labels.append(targets)
-        embeddings = np.vstack(embeddings)
-        labels = np.hstack(labels)
-        metric = MapAtK(k_values=[10], similarity_fn=(get_similarity_function('cosine'), 'cosine'))
-        metric.map_at_k({
-            'query_embeddings': embeddings,
-            'query_labels': labels,
-            'db_embeddings': embeddings,
-            'db_labels': labels,
-        })
-        model.train()  # to enable dropout if any
+        # # dummy test: MAP@k against itself
+        # model.eval().to(device)
+        # embeddings = []
+        # labels = []
+        # with torch.no_grad():
+        #     for inputs, targets in tqdm(dataloader, desc='Evaluating'):
+        #         inputs = inputs.to(device)
+        #         outputs = model(*[inputs]*len(model.mlps))
+        #         # Use the first branch for evaluation
+        #         emb = outputs[0].cpu().numpy()
+        #         targets = targets.cpu().numpy()
+        #         embeddings.append(emb)
+        #         labels.append(targets)
+        # embeddings = np.vstack(embeddings)
+        # labels = np.hstack(labels)
+        # metric = MapAtK(k_values=[10], similarity_fn=(get_similarity_function('cosine'), 'cosine'))
+        # metric.map_at_k({
+        #     'query_embeddings': embeddings,
+        #     'query_labels': labels,
+        #     'db_embeddings': embeddings,
+        #     'db_labels': labels,
+        # })
+        # model.train()  # to enable dropout if any
         return {}
 
     # --------------------------
