@@ -1,7 +1,7 @@
 data:
   dataset_type: EmbeddingDataset
-  train_dir: ./data/glomerulus/test  # TODO CHANGE TO TRAIN
-  test_dir: ./data/glomerulus/test
+  train_dir: ./data/glomerulus/train
+  test_dir: ./data/glomerulus/val  # NOTE using val instead of test, test is for final eval only
   embedding_model: uni
   class_mapping: {Crescent: 0, Hypercelularidade: 1, Membranous: 2, Normal: 3, Podocitopatia: 4, Sclerosis: 5}
   batch_size_train: 32
