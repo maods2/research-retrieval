@@ -81,7 +81,7 @@ class EmbeddingDataset(Dataset):
     #         self.train_idxs, self.val_idxs = self.train_idxs[:train_split], self.train_idxs[train_split:]
 
     def __len__(self):
-        return self.embeddings.__len__()
+        return len(self.embeddings)
 
     def __getitem__(self, idx: int) -> tuple[torch.Tensor, torch.Tensor]:
         return (self.embeddings[idx], self.labels[idx])

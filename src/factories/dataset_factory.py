@@ -11,6 +11,7 @@ from dataloaders.dataset_contrastive import ContrastiveDataset
 from dataloaders.dataset_fewshot import FewShotFolderDataset
 from dataloaders.dataset_triplet import TripletDataset
 from dataloaders.dataset_embedding import EmbeddingDataset
+from dataloaders.dataset_embedding_precomputed import PrecomputedEmbeddingDataset
 
 from factories.model_factory import get_model
 from utils.auth_utils import get_hf_token
@@ -34,8 +35,23 @@ def get_dataset(config, transform_train: Optional[Callable] = None, transform_te
         dataset_class = ContrastiveDataset
     elif dataset_name == 'EmbeddingDataset':
         dataset_class = EmbeddingDataset
+    elif dataset_name == 'PrecomputedEmbeddingDataset':
+        dataset_class = PrecomputedEmbeddingDataset
     else:
         raise ValueError(f'Dataset {dataset_name} is not supported.')
+
+    if dataset_class is PrecomputedEmbeddingDataset:
+        # special case, no image directories, load from npz files
+        train_dataset = dataset_class.from_npz(
+            npz_path=data_config['train_npz_path'],
+            class_mapping=data_config['class_mapping'],
+        )
+
+        test_dataset = dataset_class.from_npz(
+            npz_path=data_config['test_npz_path'],
+            class_mapping=data_config['class_mapping'],
+        )
+        return train_dataset, test_dataset
 
 
     # if dataset_class != EmbeddingDataset:
