@@ -205,6 +205,10 @@ class NPairLoss(torch.nn.Module):
         return loss.mean()
 
 class SupervisedContrastiveAttention(torch.nn.Module):
+    """
+    Source: https://arxiv.org/abs/2004.11362
+    Paper "Supervised Contrastive Learning" by Khosla et al.
+    """
     def __init__(self, loss_config: dict[str, Any]):  # NOTE: this default is common in papers
         super().__init__()
         self.temperature = loss_config.get("temperature", 0.7) 

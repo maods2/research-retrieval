@@ -23,21 +23,21 @@ transform:
 #    to_tensor: true
   train:
     resize: [224, 224]
-    horizontal_flip: true
-    color_jitter:
-      brightness: 0.4
-      contrast: 0.4
-      saturation: 0.4
-      hue: 0.1
-      probability: 0.4
-      gaussian_noise:
-        var_limit: [5.0, 30.0]
-        mean: 0.0
-        probability: 0.4
-      gaussian_blur:
-        blur_limit: [3, 7]
-        probability: 0.4
-    random_grayscale: 0.2
+    # horizontal_flip: true
+    # color_jitter:
+    #   brightness: 0.4
+    #   contrast: 0.4
+    #   saturation: 0.4
+    #   hue: 0.1
+    #   probability: 0.4
+    #   gaussian_noise:
+    #     var_limit: [5.0, 30.0]
+    #     mean: 0.0
+    #     probability: 0.4
+    #   gaussian_blur:
+    #     blur_limit: [3, 7]
+    #     probability: 0.4
+    # random_grayscale: 0.2
     normalize:
       mean: [0.485, 0.456, 0.406]
       std: [0.229, 0.224, 0.225]
@@ -68,7 +68,7 @@ model:
 
 optimizer:
   name: adam
-  lr: 1e-5
+  lr: 1e-4
   # weight_decay: 1e-4
 
 loss:
