@@ -4,7 +4,7 @@ import torch
 
 from pathlib import Path
 from torch.utils.data import Dataset
-from typing import Optional, List
+from typing import Callable, Optional, List, Any
 
 
 class PrecomputedEmbeddingDataset(Dataset):
@@ -60,3 +60,6 @@ class PrecomputedEmbeddingDataset(Dataset):
 
     def __getitem__(self, idx: int) -> tuple[torch.Tensor, torch.Tensor]:
         return self.embeddings[idx], self.labels[idx]
+
+    def set_transform(self, transform: Callable[..., Any] | None):
+        return
