@@ -1,9 +1,11 @@
 import os
 import sys
+import time
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 import random
 from pathlib import Path
 from typing import *
+from abc import ABC, abstractmethod
 
 import cv2
 import numpy as np
@@ -18,11 +20,10 @@ from albumentations.pytorch import ToTensorV2
 
 from dataloaders.dataset import StandardImageDataset
 
-
-class FewShotFolderDataset(StandardImageDataset):
+class FewShotFolderDataset(StandardImageDataset, ABC):
     def __init__(
         self, 
-        root_dir: str, 
+        root_dir: str,
         config: dict[str, Any],
         transform: Optional[Callable] = None, 
         class_mapping: Optional[dict[str, int]] = None, 
@@ -107,6 +108,28 @@ class FewShotFolderDataset(StandardImageDataset):
 
         return image, label
 
+    @abstractmethod
+    def __getitem__(self, idx):
+        raise NotImplementedError()
+
+class VariableFewShotFolderDataset(FewShotFolderDataset):
+    """ 
+    Few-shot dataset where the support changes for every query.
+    """
+    def __init__(
+        self, 
+        root_dir: str, 
+        config: dict[str, Any],
+        transform: Optional[Callable] = None, 
+        class_mapping: Optional[dict[str, int]] = None, 
+    ):
+        super().__init__(
+            root_dir=root_dir, 
+            transform=transform, 
+            class_mapping=class_mapping, 
+            config=config
+        )
+
     def __getitem__(self, idx):
         if self.validation_dataset is not None:
             return self._validation__getitem__(idx)
@@ -148,6 +171,97 @@ class FewShotFolderDataset(StandardImageDataset):
             torch.tensor(query_lbls),
         )
 
+class FixedFewshotFolderDataset(FewShotFolderDataset):
+    """ 
+    Few-shot dataset where the support is pre-selected and fixed for every query.
+    """
+    def __init__(
+        self, 
+        root_dir: str, 
+        config: dict[str, Any],
+        transform: Optional[Callable] = None, 
+        class_mapping: Optional[dict[str, int]] = None, 
+    ):
+        super().__init__(
+            root_dir=root_dir, 
+            transform=transform, 
+            class_mapping=class_mapping, 
+            config=config
+        )
+
+        self.support_paths = []
+        self.support_lbls = torch.empty((self.n_way * self.k_shot))
+        self.support = None
+
+        if os.path.exists(os.path.join(root_dir, "support_set.npz")):
+            self._load_existing_support_set(root_dir)
+        else:
+            # Construct support set
+            support_imgs = []
+            selected = random.sample(self.classes, self.n_way)
+            for cls_idx, cls in enumerate(selected):
+                cls_img_paths = random.sample(population=self.image_dict[self.class_mapping[cls]], k=self.k_shot)
+                self.support_paths += cls_img_paths 
+                for idx, fpath in enumerate(cls_img_paths):
+                    img = self._open_image(fpath)
+                    if self.transform:
+                        img = self.transform(image=img)['image']
+                    support_imgs.append(img)
+                    self.support_lbls[cls_idx * len(cls_img_paths) + idx] = self.class_mapping[cls]
+
+            self.support = torch.stack(support_imgs)      # [n_way*k_shot, C, H, W]
+
+            if config['data'].get('save_support_set', True):
+                self._export_support_set(root_dir)
+
+    def _load_existing_support_set(self, root_dir: str):
+        support_set_dict = np.load(
+            os.path.join(root_dir, "support_set.npz"), 
+            allow_pickle=True
+        )
+        self.support = support_set_dict['images']
+        self.support_lbls = support_set_dict['labels']
+
+    def _export_support_set(self, root_dir: str):
+        support_set_dict = {
+            "images": self.support,
+            "labels": self.support_lbls
+        }
+
+        np.savez(
+        os.path.join(root_dir, f"support_set.npz"),
+            **support_set_dict
+        )
+
+    def __getitem__(self, idx):
+        if self.validation_dataset is not None:
+            return self._validation__getitem__(idx)
+
+        # Randomly select n_way classes
+        selected = random.sample(self.classes, self.n_way)
+        query_imgs, query_lbls = [], []
+
+        for cls in selected:
+            #print(cls, self.class_mapping[cls], self.image_dict[self.class_mapping[cls]])
+            query_paths = random.sample(
+                self.image_dict[self.class_mapping[cls]],
+                self.q_queries,
+            )
+
+            for p in query_paths:
+                img = self._open_image(p)
+                if self.transform:
+                    img = self.transform(image=img)['image']
+                query_imgs.append(img)
+                query_lbls.append(self.class_mapping[cls])
+
+        query = torch.stack(query_imgs)        # [n_way*q_queries, C, H, W]
+        return (
+            self.support,
+            self.support_lbls,
+            query,
+            torch.tensor(query_lbls),
+        )
 
 class SupportSetDataset(StandardImageDataset):
     def __init__(

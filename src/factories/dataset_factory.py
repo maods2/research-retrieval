@@ -8,7 +8,7 @@ import pathology_foundation_models as pfm
 
 from dataloaders.dataset import StandardImageDataset
 from dataloaders.dataset_contrastive import ContrastiveDataset
-from dataloaders.dataset_fewshot import FewShotFolderDataset
+from dataloaders.dataset_fewshot import FixedFewshotFolderDataset, VariableFewShotFolderDataset
 from dataloaders.dataset_triplet import TripletDataset
 from dataloaders.dataset_embedding import EmbeddingDataset
 from dataloaders.dataset_embedding_precomputed import PrecomputedEmbeddingDataset
@@ -25,21 +25,26 @@ def get_dataset(config, transform_train: Optional[Callable] = None, transform_te
     )  # Default to TerumoImageDataset
 
     # Select dataset class dynamically based on config
-    if dataset_name == 'StandardImageDataset':
-        dataset_class = StandardImageDataset
-    elif dataset_name == 'TripletDataset':
-        dataset_class = TripletDataset
-    elif dataset_name == 'FewShotFolderDataset':
-        dataset_class = FewShotFolderDataset
-    elif dataset_name == 'ContrastiveDataset':
-        dataset_class = ContrastiveDataset
-    elif dataset_name == 'EmbeddingDataset':
-        dataset_class = EmbeddingDataset
-    elif dataset_name == 'PrecomputedEmbeddingDataset':
-        dataset_class = PrecomputedEmbeddingDataset
-    else:
-        raise ValueError(f'Dataset {dataset_name} is not supported.')
+    match (dataset_name):
+        case 'StandardImageDataset':
+            dataset_class = StandardImageDataset
+        case 'TripletDataset':
+            dataset_class = TripletDataset
+        case 'FewShotFolderDataset':
+            if config['data'].get('fixed_support_set', False):
+                dataset_class = FixedFewshotFolderDataset 
+            else:
+                dataset_class = VariableFewShotFolderDataset
+        case 'ContrastiveDataset':
+            dataset_class = ContrastiveDataset
+        case 'EmbeddingDataset':
+            dataset_class = EmbeddingDataset
+        case 'PrecomputedEmbeddingDataset':
+            dataset_class = PrecomputedEmbeddingDataset
+        case _:
+            raise ValueError(f'Dataset {dataset_name} is not supported.')
 
+    assert dataset_class is not None, "Unreachable"
     if dataset_class is PrecomputedEmbeddingDataset:
         # special case, no image directories, load from npz files
         train_dataset = dataset_class.from_npz(
@@ -52,7 +57,6 @@ def get_dataset(config, transform_train: Optional[Callable] = None, transform_te
             class_mapping=data_config['class_mapping'],
         )
         return train_dataset, test_dataset
-
 
     # if dataset_class != EmbeddingDataset:
     # Create dataset instances for training and evaluation

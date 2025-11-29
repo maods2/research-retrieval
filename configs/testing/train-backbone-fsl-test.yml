@@ -12,6 +12,8 @@ data:
   train_test_split: 0.2 # Split data into 80% training and 20% testing
   train_val_split: 0.1 # Use 10% of training data as validation
   shuffle_seed: 2025
+
+  fixed_support_set: true
   
 transform:
 #  train:
