@@ -130,6 +130,10 @@ class VariableFewShotFolderDataset(FewShotFolderDataset):
             config=config
         )
 
+        if self.k_shot == -1:
+            raise ValueError("You need to specific the number of image per class in the support set for VariableFewShotFolderDataset. " \
+            "If you want to use the whole dataset as the SupportSet, use FixedFewShotFolderDataset with k_shot as -1.")
+
     def __getitem__(self, idx):
         if self.validation_dataset is not None:
             return self._validation__getitem__(idx)
@@ -190,26 +194,50 @@ class FixedFewshotFolderDataset(FewShotFolderDataset):
         )
 
         self.support_paths = []
-        self.support_lbls = torch.empty((self.n_way * self.k_shot))
+        self.support_lbls = []
         self.support = None
 
         if os.path.exists(os.path.join(root_dir, "support_set.npz")):
             self._load_existing_support_set(root_dir)
-        else:
-            # Construct support set
+
+        elif self.k_shot == -1:
+            """
+            Support set will be the entire dataset.
+            """
+            self.support_lbls = []
             support_imgs = []
-            selected = random.sample(self.classes, self.n_way)
-            for cls_idx, cls in enumerate(selected):
-                cls_img_paths = random.sample(population=self.image_dict[self.class_mapping[cls]], k=self.k_shot)
-                self.support_paths += cls_img_paths 
-                for idx, fpath in enumerate(cls_img_paths):
+            for cls in self.classes:
+                cls_img_paths = self.image_dict[self.class_mapping[cls]]
+                support_imgs += cls_img_paths
+                for fpath in cls_img_paths:
                     img = self._open_image(fpath)
                     if self.transform:
                         img = self.transform(image=img)['image']
                     support_imgs.append(img)
-                    self.support_lbls[cls_idx * len(cls_img_paths) + idx] = self.class_mapping[cls]
+                    self.support_lbls.append(self.class_mapping[cls])
 
             self.support = torch.stack(support_imgs)      # [n_way*k_shot, C, H, W]
+            self.support_lbls = torch.stack(self.support_lbls)
+            
+            if config['data'].get('save_support_set', True):
+                self._export_support_set(root_dir)
+
+        else:
+            # Construct support set
+            support_imgs = []
+            selected = random.sample(self.classes, self.n_way)
+            for cls in selected:
+                cls_img_paths = random.sample(population=self.image_dict[self.class_mapping[cls]], k=self.k_shot)
+                self.support_paths += cls_img_paths 
+                for fpath in cls_img_paths:
+                    img = self._open_image(fpath)
+                    if self.transform:
+                        img = self.transform(image=img)['image']
+                    support_imgs.append(img)
+                    self.support_lbls.append(torch.tensor(self.class_mapping[cls]))
+
+            self.support = torch.stack(support_imgs)      # [n_way*k_shot, C, H, W]
+            self.support_lbls = torch.stack(self.support_lbls) # [n_way*k_shot]
 
             if config['data'].get('save_support_set', True):
                 self._export_support_set(root_dir)

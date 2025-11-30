@@ -62,11 +62,13 @@ model:
   encoder_dim: 2048
   decoder_channels: 2048
   n_way: 6        # Number of classes per episode
-  k_shot: 5       # Number of support examples per class
+  k_shot: -1       # Number of support examples per class
   q_queries: 6    # Number of query examples per class
   k_queries: 128 # For few-shot learning, this will be the batch size
   hidden_dim: 512  # Hidden dimension for FSL encoder
   embedding_dim: 128  # Embedding dimension for FSL encoder
+
+  generate_semantic_attributes: true
 
 optimizer:
   name: adam
