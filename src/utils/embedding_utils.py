@@ -2,7 +2,7 @@ from factories.transform_factory import get_transforms
 from torch.utils.data import DataLoader
 from torch.utils.data import Subset
 from tqdm import tqdm
-from typing import Any, Dict, Tuple, Callable
+from typing import Any, Dict, Tuple, Callable, Optional
 
 import numpy as np
 import os
@@ -49,7 +49,12 @@ def create_embeddings(
             if normalize_embeddings:
                 embedding = torch.nn.functional.normalize(embedding, dim=1)
 
+        if isinstance(embedding, tuple):
+            # For multi-branch models: concatenate all branch outputs along feature dimension
+            embedding = torch.cat(embedding, dim=0)
+        
         embeddings.append(embedding.cpu().numpy())
+
         # Handle both one-hot and standard labels
         if len(label.shape) > 1:  # one-hot encoded
             label = label.argmax(dim=1)
@@ -92,6 +97,95 @@ def get_dataset_attribute(dataset, attribute_name: str):
     else:
         # Regular dataset - return attribute directly
         return getattr(dataset, attribute_name)
+
+
+def compute_prototypes(
+    embeddings: np.ndarray,
+    labels: np.ndarray,
+    n_classes: Optional[int] = None,
+) -> np.ndarray:
+    """
+    Compute class prototypes as the mean embedding of all samples in each class.
+
+    Args:
+        embeddings: Array of shape (N, D) containing all embeddings
+        labels: Array of shape (N,) containing class labels
+        n_classes: Number of classes. If None, inferred from labels.max() + 1
+
+    Returns:
+        Prototypes array of shape (n_classes, D)
+    """
+    if n_classes is None:
+        n_classes = int(labels.max()) + 1
+
+    prototypes = np.zeros((n_classes, embeddings.shape[1]), dtype=embeddings.dtype)
+    for class_idx in range(n_classes):
+        class_mask = labels == class_idx
+        if class_mask.sum() > 0:
+            prototypes[class_idx] = embeddings[class_mask].mean(axis=0)
+
+    return prototypes
+
+
+def concatenate_prototype_distances(
+    embeddings: np.ndarray,
+    labels: np.ndarray,
+    prototypes: Optional[np.ndarray] = None,
+    distance_metric: str = 'cosine',
+    normalize_distances: bool = True,
+) -> Tuple[np.ndarray, np.ndarray]:
+    """
+    Concatenate embeddings with normalized distances to all class prototypes.
+
+    Args:
+        embeddings: Array of shape (N, D) containing embeddings
+        labels: Array of shape (N,) containing class labels
+        prototypes: Array of shape (n_classes, D) containing class prototypes.
+                   If None, computed from embeddings and labels.
+        distance_metric: Metric to use ('cosine', 'euclidean', 'l2')
+        normalize_distances: If True, normalize similarities to [0, 1] range
+
+    Returns:
+        Tuple of:
+            - Augmented embeddings of shape (N, D + n_classes)
+            - Prototypes used (in case they were computed)
+    """
+    if prototypes is None:
+        prototypes = compute_prototypes(embeddings, labels)
+
+    n_samples, embedding_dim = embeddings.shape
+    n_classes = prototypes.shape[0]
+
+    # Compute similarities (not distances)
+    if distance_metric == 'cosine':
+        #from sklearn.metrics.pairwise import cosine_similarity
+        #cosine_sims = cosine_similarity(embeddings, prototypes)
+        similarities = embeddings @ prototypes.T
+        
+    elif distance_metric == 'euclidean' or distance_metric == 'l2':
+        distances = np.zeros((n_samples, n_classes), dtype=embeddings.dtype)
+        for class_idx in range(n_classes):
+            distances[:, class_idx] = np.linalg.norm(
+                embeddings - prototypes[class_idx],
+                ord=2,
+                axis=1
+            )
+        
+        # Use median distance as scale to normalize
+        #median_dist = np.median(distances)
+        #scale = max(median_dist, 1e-6)  # Avoid division by zero
+        #similarities = np.exp(-distances / scale)
+        similarities = -distances
+        
+    else:
+        raise ValueError(f"Unknown distance metric: {distance_metric}")
+
+    # Normalize per sample across classes
+    similarities = torch.nn.functional.log_softmax(torch.from_numpy(similarities), dim=1).numpy()
+
+    augmented_embeddings = np.concatenate([embeddings, similarities], axis=1)
+
+    return augmented_embeddings, prototypes
 
 
 def create_embeddings_dict(
@@ -154,6 +248,40 @@ def create_embeddings_dict(
         desc='Generating queries',
     )
 
+    # Concatenate embeddings with prototype distances
+    prototypes = None
+    if config['evaluation'].get('augment_with_prototype_distances', False):
+        logger.info('Computing prototypes and concatenating distances...')
+        distance_metric = config['evaluation'].get(
+            'prototype_distance_metric', 'euclidean'
+        )
+        
+        # Compute prototypes from training data
+        prototypes = compute_prototypes(db_embeddings, db_labels)
+        
+        # Concatenate DB embeddings with distances to prototypes
+        db_embeddings, _ = concatenate_prototype_distances(
+            db_embeddings,
+            db_labels,
+            prototypes=prototypes,
+            distance_metric=distance_metric,
+        )
+        
+        # Concatenate query embeddings with distances to prototypes
+        query_embeddings, _ = concatenate_prototype_distances(
+            query_embeddings,
+            query_labels,
+            prototypes=prototypes,
+            distance_metric=distance_metric,
+        )
+        
+        logger.info(
+            f'Augmented DB embeddings shape: {db_embeddings.shape}'
+        )
+        logger.info(
+            f'Augmented query embeddings shape: {query_embeddings.shape}'
+        )
+
     # Use the generalist function to get attributes
     embeddings = {
         'db_embeddings': db_embeddings,
@@ -171,6 +299,10 @@ def create_embeddings_dict(
             get_dataset_attribute(train_loader.dataset, 'class_mapping')
         ),
     }
+    
+    # Store prototypes if computed
+    if prototypes is not None:
+        embeddings['prototypes'] = prototypes
 
     if config['evaluation']['save_embeddings']:
         # Ensure the directory exists

@@ -17,7 +17,7 @@ class PrecomputedEmbeddingDataset(Dataset):
     ):
         self.embeddings = embeddings
         self.labels = labels
-        self.paths = paths
+        self.image_paths = paths
         self.class_mapping = class_mapping
 
     @classmethod

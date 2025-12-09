@@ -4,9 +4,11 @@
 
 import numpy as np
 from pathlib import Path
+import sys
 
 # === EDIT THIS ===
-INPUT = "local_experiments/uni_fsl/glomerulus/uni_fsl_glomerulus_2025-10-18_17-33-36/embeddings_2025-10-18_17-44-06.npz"  # path to your combined file
+#INPUT = "local_experiments/uni_fsl/glomerulus/uni_fsl_glomerulus_2025-10-18_17-33-36/embeddings_2025-10-18_17-44-06.npz"  # path to your combined file
+INPUT =  sys.argv[1]
 # ================
 
 in_path = Path(INPUT)

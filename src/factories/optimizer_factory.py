@@ -12,6 +12,8 @@ def get_optimizer(optimizer_config, model):
 
     if optimizer_name == 'adam':
         optimizer = optim.Adam(model_params)
+    elif optimizer_name == 'adamw':
+        optimizer = optim.AdamW(params=model_params)
     elif optimizer_name == 'sgd':
         momentum = optimizer_config.get('momentum', 0.9)
         optimizer = optim.SGD(

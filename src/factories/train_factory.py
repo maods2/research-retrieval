@@ -7,7 +7,10 @@ def get_train_function(config):
             return pipelines.DefaultTrainer(config)
 
         case 'fsl_trainer':
-            return pipelines.FewShotTrainer(config)
+            if config['data'].get('fixed_supportset', False):
+                return pipelines.FixedSSFewShotTrainer(config)
+            else:
+                return pipelines.FewShotTrainer(config)
 
         case 'terumo_trainer':
             return pipelines.TerumoContrastiveTrainer(config)

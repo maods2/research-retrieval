@@ -1,3 +1,3 @@
 from .default_trainer import DefaultTrainer
-from .few_shot_trainer import FewShotTrainer
+from .few_shot_trainer import FewShotTrainer, FixedSSFewShotTrainer
 from .terumo_contrastive_trainer import TerumoContrastiveTrainer

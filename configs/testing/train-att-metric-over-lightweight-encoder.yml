@@ -50,13 +50,13 @@ model:
   num_classes: 6
   model_code: 2_branch_mlp
   model_name: 2_branch_mlp
-  experiment_name: 2_branch_mlp_uni_glomerulus
+  experiment_name: 2_branch_mlp_uni_glomerulus_fixed_ss
   embedding_model: uni 
   pretrained: true # If available, use pretrained weights
   load_checkpoint: false # If true, load the checkpoint specified below
   checkpoint_path: ''
   freeze_params: true
-  encoder_dim: 128
+  encoder_dim: 134 # 128 + 6 classes (semantic attributes)
 
   # N_BRANCH_MLP
   n_mlp_branches: 2
@@ -89,6 +89,9 @@ evaluation:
   embeddings_path: '' # Path to load embeddings if needed
   save_embeddings: true
   normalize_embeddings: false
+  augment_with_prototype_distances: true
+  prototype_distance_metric: euclidean # cosine similarity [0,1], better than raw distances
+
   list_of_metrics:
     - type: map@k
       k_values: [1, 3, 6, 9, 12, 15]

@@ -57,25 +57,44 @@ class N_BranchMLP(nn.Module):
             self.mlps.append(mlp)
                 
 
-    def forward(self, *args: torch.Tensor) -> list[torch.Tensor]:
+    def forward(self, *args: torch.Tensor) -> tuple[torch.Tensor, ...]:
         """
-        Calculate deep similarity function.
+        Forward pass through n-branch MLP.
 
-        :param torch.Tensor x: matrix (N, d) of embeddings
-        :return: matrix (N, d_k) of transformed embeddings
+        If single tensor provided: replicate to all branches
+        If n tensors provided: pass each through corresponding branch
+
+        Args:
+            *args: Either one tensor (B, input_dim) or n_branches tensors of shape (B, input_dim)
+
+        Returns:
+            Tuple of tensors, one per branch, each of shape (B, d_k)
         """
-        if len(args) != len(self.mlps):
-                raise ValueError(f"Insufficient tensors to forward function: expected {len(self.mlps)} tensors (N, d)")
-            
-        out_tensors = []
-        for mlp, x in zip(self.mlps, args):
+        # Handle single input replication
+        if len(args) == 1:
+            x = args[0]
             if len(x.shape) != 2:
-                raise ValueError("Invalid shape for input matrix:"
-                                f" expected (N, d), got {x.shape}")
-            
-            # apply MLP
-            for layer in mlp:
-                x = layer(x)
-            out_tensors.append(x)
-
-        return out_tensors
+                raise ValueError(f"Invalid shape for input matrix: expected (N, d), got {x.shape}")
+            out_tensors = []
+            for mlp in self.mlps:
+                out = x
+                for layer in mlp:
+                    out = layer(out)
+                out_tensors.append(out)
+            return tuple(out_tensors)
+        
+        # Handle multiple inputs (one per branch)
+        elif len(args) == len(self.mlps):
+            out_tensors = []
+            for mlp, x in zip(self.mlps, args):
+                if len(x.shape) != 2:
+                    raise ValueError(f"Invalid shape for input matrix: expected (N, d), got {x.shape}")
+                
+                out = x
+                for layer in mlp:
+                    out = layer(out)
+                out_tensors.append(out)
+            return tuple(out_tensors)
+        
+        else:
+            raise ValueError(f"Expected either 1 or {len(self.mlps)} tensors, got {len(args)}")
