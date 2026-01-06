@@ -89,7 +89,7 @@ class WrappedFsl(nn.Module):
         proto_neg = embeddings[neg_mask].mean(0)    # (D,)
 
         # stack into [neg, pos]
-        return torch.stack([proto_neg, proto_pos], dim=0)  # (2, D)
+        return torch.stack([proto_neg, proto_pos], dim=1)  # (2, D)
 
     def predict_binary(self, query_embeddings, prototypes):
         # query_embeddings: (Q, D), prototypes: (2, D)

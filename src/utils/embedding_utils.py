@@ -250,7 +250,7 @@ def create_embeddings_dict(
 
     # Concatenate embeddings with prototype distances
     prototypes = None
-    if config['evaluation'].get('augment_with_prototype_distances', False):
+    if config['data'].get('semantic_attributes', False):
         logger.info('Computing prototypes and concatenating distances...')
         distance_metric = config['evaluation'].get(
             'prototype_distance_metric', 'euclidean'

@@ -19,24 +19,41 @@ eval:
 # Training All Models on All Datasets	
 # ============================
 
+# datasets="skin-cancer glomerulo bracs ovarian-cancer lung-colon crc-val-he-7k";
+#models="uni_fsl uni2h_fsl phikon_fsl phikon_v2_fsl virchow_fsl virchow_v2_fsl";
 train-all-models:
-	datasets="skin-cancer glomerulo"; \
-	models="phikon-v2_fsl"; \
+	datasets="glomerulo"; \
+	models="uni2h_fsl phikon_fsl phikon_v2_fsl"; \
 	for dataset in $$datasets; do \
 		for model in $$models; do \
 			echo "Training on $$dataset with $$model"; \
-			python3 src/main.py --config configs/$$dataset/$$model\_config.yaml --pipeline train; \
+			python3 src/main.py --config test_configs/$$dataset/$$model.yml --pipeline train; \
 		done; \
 	done
 
+# models="uni_fsl uni2h_fsl phikon_fsl phikon_v2_fsl virchow_fsl virchow_v2_fsl";
+train-metric-all-models:
+	datasets="glomerulo"; \
+	models="uni_fsl uni2h_fsl phikon_fsl phikon_v2_fsl virchow_fsl virchow_v2_fsl"; \
+	for dataset in $$datasets; do \
+		for model in $$models; do \
+			echo "Training on $$dataset with $$model"; \
+			python3 src/main.py --config test_configs/lwe/$$dataset/$$model.yml --pipeline train; \
+		done; \
+	done
 # ============================
 # Download Datasets
 # ============================
+# #gdown https://drive.google.com/uc?id=14GaaCw7og5jqwsBggb52EgVQKBwOJQpV &&
 download-datasets:
 	cd ./datasets && \
-	gdown https://drive.google.com/uc?id=14GaaCw7og5jqwsBggb52EgVQKBwOJQpV && \
-	unzip final_v2.zip && \
-	rm -rf final_v2.zip
+	gdown https://drive.google.com/drive/folders/1OV2dAb76InpUZoVa-HWRS_dzXGH9qv0m && \
+	unzip bracs.zip && \
+	unzip crc-val-he-7k.zip && \
+	unzip lung-colon.zip && \
+	unzip ovarian-cancer-subtypes.zip && \
+	unzip skin-cancer.zip && \
+	unzip ubc-ovarian-cancer.zip
 
 
 # ============================
