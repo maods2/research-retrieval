@@ -208,13 +208,12 @@ class FixedFewshotFolderDataset(FewShotFolderDataset):
             support_imgs = []
             for cls in self.classes:
                 cls_img_paths = self.image_dict[self.class_mapping[cls]]
-                support_imgs += cls_img_paths
                 for fpath in cls_img_paths:
                     img = self._open_image(fpath)
                     if self.transform:
                         img = self.transform(image=img)['image']
                     support_imgs.append(img)
-                    self.support_lbls.append(self.class_mapping[cls])
+                    self.support_lbls.append(torch.tensor(self.class_mapping[cls]))
 
             self.support = torch.stack(support_imgs)      # [n_way*k_shot, C, H, W]
             self.support_lbls = torch.stack(self.support_lbls)
