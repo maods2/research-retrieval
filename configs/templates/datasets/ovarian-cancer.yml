@@ -8,7 +8,6 @@ data:
   num_workers: 3  # Number of workers to load the data
   shuffle_train: true  # Shuffle the training data
   shuffle_test: false # Shuffle the test data
-
 model:
   num_classes: 5
   

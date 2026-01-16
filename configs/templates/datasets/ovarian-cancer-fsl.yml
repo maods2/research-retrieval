@@ -1,16 +1,23 @@
 data:
   dataset_type: FewShotFolderDataset    # Specify the dataset type (e.g., terumo, etc.)
   train_dir: data/ovarian-cancer/train
-  test_dir: data/ovarian-cancer/test
+  test_dir: data/ovarian-cancer/test-retrieval
   class_mapping: {Clear_Cell: 0, Endometri: 1, Mucinous: 2, Non_Cancerous: 3, Serous: 4}
   batch_size_train: 1 # For few-shot learning, aways 1 
   batch_size_eval: 64
-  num_workers: 3  # Number of workers to load the data
+  num_workers: 1  # Number of workers to load the data
   shuffle_train: true  # Shuffle the training data
   shuffle_test: false # Shuffle the test data
-
+  
+  train_test_split: 0.2 # Split data into 80% training and 20% testing
+  train_val_split: 0.1 # Use 10% of training data as validation
+  shuffle_seed: 2025
+  
+  fixed_support_set: false
+  semantic_attributes: true
 model:
   num_classes: 5
+  n_way: 5
   
 transform:
   train:

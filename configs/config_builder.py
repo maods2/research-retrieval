@@ -1,6 +1,7 @@
 import yaml
 from pathlib import Path
 from copy import deepcopy
+from itertools import product
 from ruamel.yaml import YAML
 
 def load_yaml(path):
@@ -50,7 +51,7 @@ def generate(experiments):
         
         base_path = Path(f'configs/templates/general/{base_config}.yml')
         data_path = Path(f'configs/templates/datasets/{dataset_template}.yml')
-        out_dir = Path(f'configs/{dataset_name}')
+        out_dir = Path(f'test_configs/seb/{dataset_name}')
         out_dir.mkdir(parents=True, exist_ok=True)
         
         model_path = Path(f'configs/templates/models/{model_template}.yml')
@@ -72,9 +73,9 @@ def main():
     experiments = [
     #   (model_code,        model_name,         pipeline_type,          model_template    dataset_name,   dataset_template  )                         
 
-        ("resnet",          "resnet18_classif",  "default_trainer",      "02-resnet-clsf",    "ovarian-cancer",  "ovarian-cancer" ),
-        ("resnet_fsl",      "resnet18",          "fsl_trainer",          "01-few-shot",      "ovarian-cancer",  "ovarian-cancer-fsl" ),
-        ("resnet_fsl",      "resnet18",          "retrieval_evaluator",  "01-few-shot",      "ovarian-cancer-fsl-eval",  "ovarian-cancer-fsl" ),
+        #("resnet",          "resnet18_classif",  "default_trainer",      "02-resnet-clsf",    "ovarian-cancer",  "ovarian-cancer" ),
+        #("resnet_fsl",      "resnet18",          "fsl_trainer",          "01-few-shot",      "ovarian-cancer",  "ovarian-cancer-fsl" ),
+        #("resnet_fsl",      "resnet18",          "retrieval_evaluator",  "01-few-shot",      "ovarian-cancer-fsl-eval",  "ovarian-cancer-fsl" ),
         
         
         # ("dino",            "dino",             "default_trainer",      "00-default",      "skin-cancer",  "skin-cancer" ),
@@ -96,7 +97,43 @@ def main():
         # ("phikon-v2_fsl",   "phikon-v2_fsl",    "fsl_trainer",          "01-few-shot",     "skin-cancer",  "skin-cancer" ),
 
     ]
+
+    models = [
+        # model_code        model_name       model_templates
+        ("uni_fsl",             "uni",           "03-seb-fsl"),
+        ("uni2h_fsl",           "uni2h",         "03-seb-fsl"),
+        ("virchow_fsl",         "virchow",       "03-seb-fsl"),
+        ("virchow_v2_fsl",      "virchow_v2",    "03-seb-fsl"),
+        ("phikon_fsl",          "phikon",        "03-seb-fsl"),
+        ("phikon_v2_fsl",       "phikon_v2",     "03-seb-fsl"),
+        ("dino_fsl",            "dino_v1_b16",   "03-seb-fsl"),
+        ("dinov2_fsl",          "dino_v2_b",     "03-seb-fsl"),
+        #("dinov3_fsl",         "dinov3",        "03-seb-fsl"),
+    ]
+
+    datasets = [
+    #   dataset_name   dataset_template
+        ("glomerulo", "glomerulo-fsl"),
+        #("glomerulo", "precomputed-glomerulo")
+        ("bracs", "bracs-fsl"),
+        ("crc-val-he-7k", "crc-val-he-7k-fsl"),
+        ("lung-colon", "lung-colon-fsl"),
+        ("skin-cancer", "skin-cancer-fsl"),
+        ("ubc-ovarian-cancer", "ubc-ovarian-cancer-fsl"),
+    ]
     
+    pipelines =  [
+        #"terumo_trainer"
+        "fsl_trainer"
+    ]
+
+    
+    for exp in product(models, datasets, pipelines):
+        model_name, model_code, model_template = exp[0]
+        dataset_name, dataset_template = exp[1]
+        pipeline = exp[2]
+        experiments.append((model_name, model_code, pipeline, model_template, dataset_name, dataset_template))
+                            
     # Generate configurations
     generate(experiments)
 

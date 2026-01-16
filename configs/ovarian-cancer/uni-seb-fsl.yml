@@ -1,0 +1,107 @@
+data:
+  dataset_type: FewShotFolderDataset    # Specify the dataset type (e.g., terumo, etc.)
+  train_dir: data/ovarian-cancer/train
+  test_dir: data/ovarian-cancer/test
+  class_mapping: {Clear_Cell: 0, Endometri: 1, Mucinous: 2, Non_Cancerous: 3, Serous: 4}
+  batch_size_train: 1 # For few-shot learning, aways 1 
+  batch_size_eval: 64
+  num_workers: 3  # Number of workers to load the data
+  shuffle_train: true  # Shuffle the training data
+  shuffle_test: false # Shuffle the test data
+
+  train_test_split: 0.2 # Split data into 80% training and 20% testing
+  train_val_split: 0.1 # Use 10% of training data as validation
+  shuffle_seed: 2025
+
+  fixed_support_set: true
+  semantic_attributes: true
+
+transform:
+  train:
+    resize: [224, 224]
+    horizontal_flip: true
+    color_jitter:
+      brightness: 0.4
+      contrast: 0.4
+      saturation: 0.4
+      hue: 0.1
+      probability: 0.4
+      gaussian_noise:
+        var_limit: [5.0, 30.0]
+        mean: 0.0
+        probability: 0.4
+      gaussian_blur:
+        blur_limit: [3, 7]
+        probability: 0.4
+    random_grayscale: 0.2
+    normalize:
+      mean: [0.485, 0.456, 0.406]
+      std: [0.229, 0.224, 0.225]
+    to_tensor: true
+  test:
+    resize: [224, 224]
+    normalize:
+      mean: [0.485, 0.456, 0.406]
+      std: [0.229, 0.224, 0.225]
+    to_tensor: true
+
+model:
+  num_classes: 5
+  model_code: uni_fsl
+  model_name: uni
+  experiment_name: uni_fsl_glomerulus
+  pretrained: true # If available, use pretrained weights
+  load_checkpoint: false # If true, load the checkpoint specified below
+  checkpoint_path: ''
+  freeze_params: true
+  encoder_dim: 2048
+  decoder_channels: 2048
+  n_way: 6        # Number of classes per episode
+  k_shot: -1       # Number of support examples per class
+  q_queries: 6    # Number of query examples per class
+  k_queries: 128 # For few-shot learning, this will be the batch size
+  hidden_dim: 512  # Hidden dimension for FSL encoder
+  embedding_dim: 128  # Embedding dimension for FSL encoder
+
+optimizer:
+  name: adamw
+  lr: 1e-4
+  weight_decay: 1e-4
+
+loss:
+  name: 0
+
+training:
+  pipeline: fsl_trainer
+  epochs: 10
+  early_stopping_patience: 3
+  val_retrieval:
+    n_db_images: 100
+    n_query_images: 5
+    seed: 42
+
+evaluation:
+  enabled: true
+  pipeline: retrieval_evaluator # Specify the evaluation pipeline. 'retrieval_evaluator' for standard image retrieval.
+  load_embeddings: false # Load precomputed embeddings
+  embeddings_path: '' # Path to load embeddings if needed
+  save_embeddings: true
+  normalize_embeddings: false
+  augment_with_prototype_distances: true  # Concatenate embeddings with distances to class prototypes
+  prototype_distance_metric: euclidean # euclidean, cosine, or l2
+  list_of_metrics:
+    - type: map@k
+      k_values: [1, 3, 6, 9, 12, 15]
+      similarity_type: similarity # similarity or distance
+      similarity_fn: cosine # cosine, euclidean, custom
+
+logging:
+  log_file: ./logs.txt
+  log_level: INFO
+
+metric_logging:
+  tool: txt # txt, mlflow
+
+output:
+  results_dir: ./local_experiments/satts/uni_fsl_glomerulus
+

@@ -1,0 +1,25 @@
+model:
+  model_code: 2_branch_mlp
+  model_name: 2_branch_mlp
+  experiment_name: 2_branch_mlp_<model_name>
+  embedding_model: <model_name>
+  pretrained: true # If available, use pretrained weights
+  load_checkpoint: false # If true, load the checkpoint specified below
+  checkpoint_path: ''
+  freeze_params: true
+  encoder_dim: 134 # 128 + 6 classes (semantic attributes)
+
+  # N_BRANCH_MLP
+  n_mlp_branches: 2
+  mlp_layers: [512,512,256,128]
+  mlp_activation: leaky_relu
+
+optimizer:
+  name: adam
+  lr: 1e-4
+  # weight_decay: 1e-4
+
+loss:
+  name: supervised_contrastive_attention
+  temperature: 0.7
+  pairwise_similarity_fn: cosine_similarity

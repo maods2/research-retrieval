@@ -19,15 +19,15 @@ eval:
 # Training All Models on All Datasets	
 # ============================
 
-# datasets="skin-cancer glomerulo bracs ovarian-cancer lung-colon crc-val-he-7k";
-#models="uni_fsl uni2h_fsl phikon_fsl phikon_v2_fsl virchow_fsl virchow_v2_fsl";
+# datasets="skin-cancer glomerulo bracs ubc-ovarian-cancer lung-colon crc-val-he-7k";
+#models="uni_fsl uni2h_fsl phikon_fsl phikon_v2_fsl virchow_fsl virchow_v2_fsl dino_fsl dinov2_fsl";
 train-all-models:
-	datasets="glomerulo"; \
-	models="uni2h_fsl phikon_fsl phikon_v2_fsl"; \
+	datasets="glomerulo skin-cancer bracs ubc-ovarian-cancer lung-colon crc-val-he-7k"; \
+	models="uni_fsl uni2h_fsl phikon_fsl phikon_v2_fsl virchow_fsl virchow_v2_fsl dino_fsl dinov2_fsl"; \
 	for dataset in $$datasets; do \
 		for model in $$models; do \
 			echo "Training on $$dataset with $$model"; \
-			python3 src/main.py --config test_configs/$$dataset/$$model.yml --pipeline train; \
+			python3 src/main.py --config test_configs/seb/$$dataset/$$model.yml --pipeline train; \
 		done; \
 	done
 
@@ -46,14 +46,20 @@ train-metric-all-models:
 # ============================
 # #gdown https://drive.google.com/uc?id=14GaaCw7og5jqwsBggb52EgVQKBwOJQpV &&
 download-datasets:
-	cd ./datasets && \
-	gdown https://drive.google.com/drive/folders/1OV2dAb76InpUZoVa-HWRS_dzXGH9qv0m && \
-	unzip bracs.zip && \
-	unzip crc-val-he-7k.zip && \
-	unzip lung-colon.zip && \
-	unzip ovarian-cancer-subtypes.zip && \
-	unzip skin-cancer.zip && \
-	unzip ubc-ovarian-cancer.zip
+	datasets="bracs crc-val-he-7k lung-colon skin-cancer ubc-ovarian-cancer"; \
+	ids="1G6Db1DZ_t3dctc78XvQKLwpSR2VOFRt4 1ZlTFj3OGeSW-rx-wvYHROaRIZRgdsfCh 17NVQEcxBt5gCSllS4PUs6RSPaJr1VQyZ 1hs449HmRTXUb3xyDvtJOFR0IjA4gzIrz 1mLLWzdgKBRwL8wM2lPjSnIYgh2TO4YLB"; \
+	i=0; \
+	for dataset in $$datasets; do \
+		id=$$(echo $$ids | cut -d' ' -f$$((i+1))); \
+		make download-dataset DATASET=$$dataset ID=$$id; \
+		i=$$((i+1)); \
+	done
+
+download-dataset:
+	cd ./data && \
+	gdown https://drive.google.com/uc?id=$(ID) && \
+	unzip $(DATASET).zip && \
+	rm -rf $(DATASET).zip
 
 
 # ============================

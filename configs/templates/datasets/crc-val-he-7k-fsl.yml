@@ -1,17 +1,23 @@
 data:
-  dataset_type: StandardImageDataset
-  train_dir: data/glomerulus/train
-  test_dir: data/glomerulus/test
-  class_mapping: {Crescent: 0, Hypercelularidade: 1, Membranous: 2, Normal: 3, Podocitopatia: 4, Sclerosis: 5}
-  batch_size_train: 64 
+  dataset_type: FewShotFolderDataset
+  train_dir: data/crc-val-he-7k/train
+  test_dir: data/crc-val-he-7k/test-retrieval
+  class_mapping: {ADI: 0, BACK: 1, DEB: 2, LYM: 3, MUC: 4, MUS: 5, NORM: 6, STR: 7, TUM: 8}
+  batch_size_train: 1
   batch_size_eval: 64
   num_workers: 1  # Number of workers to load the data
   shuffle_train: true  # Shuffle the training data
   shuffle_test: false # Shuffle the test data
+
   train_test_split: 0.2 # Split data into 80% training and 20% testing
   train_val_split: 0.1 # Use 10% of training data as validation
   shuffle_seed: 2025
   
+  fixed_support_set: false 
+  semantic_attributes: true
+model:
+  num_classes: 9
+  n_way: 9
 transform:
   train:
     resize: [224, 224]
