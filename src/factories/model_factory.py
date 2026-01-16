@@ -11,8 +11,7 @@ import pathology_foundation_models as pfm
 # FSL
 from models.fsl_models import WrappedFsl
 
-from models.dino import DINO
-from models.dino import DINOv2
+from models.dino import DINO, DINOv2, DINOv3
 from models.resnet import ResNet
 from models.vit import ViT
 from models.n_branch_mlp import N_BranchMLP
@@ -34,6 +33,9 @@ def get_model(model_config: dict[str, Any], hf_token: Optional[str] = None):
 
     elif model_code == 'dinov2':
         model = DINOv2(model_name=model_config['model_name'])
+
+    elif model_code == 'dinov3':
+        model = DINOv3(model_name=model_config['model_name'])
 
     elif model_code == 'vit':
         model = ViT(model_name=model_config['model_name'])
