@@ -1,17 +1,17 @@
-from core.base_metric_logger import BaseMetricLogger
-from core.base_trainer import BaseTrainer
+from typing import Any, Callable, Dict, Tuple, Optional
+
+import torch
 from torch.nn import functional as F
 from torch.utils.data import DataLoader
+
+import numpy as np
 from tqdm import tqdm
-from typing import Any
-from typing import Callable
-from typing import Dict
-from typing import Tuple
+
+from core.base_metric_logger import BaseMetricLogger
+from core.base_trainer import BaseTrainer
 from schemas.training_context import TrainingContext
 from utils.metrics_utils import compute_metrics
 
-import numpy as np
-import torch
 
 
 class DefaultTrainer(BaseTrainer):
@@ -24,10 +24,10 @@ class DefaultTrainer(BaseTrainer):
         model: torch.nn.Module,
         dataloader: DataLoader,
         device: str,
-        logger: Callable = None,
+        logger: Optional[Callable] = None,
     ) -> Dict[str, Any]:
         """Evaluate the model on the given dataloader."""
-        model.eval()
+        model.eval().to(device)
         all_preds, all_labels = [], []
 
         with torch.no_grad():
@@ -55,7 +55,7 @@ class DefaultTrainer(BaseTrainer):
         device,
         epoch,
     ):
-        model.train()
+        model.train().to(device)
         running_loss, running_acc = 0.0, 0.0
         progress_bar = tqdm(train_loader, desc=f'Epoch {epoch+1}')
 
@@ -64,6 +64,7 @@ class DefaultTrainer(BaseTrainer):
             inputs, labels = inputs.to(device), labels.to(device)
             outputs = model(inputs)
             loss = loss_fn(outputs, labels)
+
             _, preds = torch.max(outputs, 1)
             acc = (preds == labels).float().mean().item()
 

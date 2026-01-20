@@ -1,36 +1,36 @@
 import os
 import sys
-
+from typing import Optional, Any
 
 sys.path.append(
     os.path.abspath(os.path.join(os.path.dirname(__file__), '../../'))
 )
 
+import pathology_foundation_models as pfm
 
 from models.autoencoder import Autoencoder
-from src.models.liu_dsh import LiuDSH
-from src.models.supcon import ProjectionHead, SupCon
-from src.models.dino import DINO
-from src.models.dino import DINOv2
-from src.models.fsl_models import DinoFsl
-from src.models.fsl_models import DINOv2Fsl
-from src.models.fsl_models import PhikonFsl
-from src.models.fsl_models import ResNetFsl
-from src.models.fsl_models import UNIFsl
-from src.models.fsl_models import Virchow2Fsl
-from src.models.fsl_models import ViTFsl
-from src.models.phikon import Phikon
-from src.models.resnet import ResNet, get_resnet_backbone
-from src.models.uni import UNI
-from src.models.virchow2 import Virchow2
-from src.models.vit import ViT
-from src.utils.checkpoint_utils import load_checkpoint
+from models.liu_dsh import LiuDSH
+from models.supcon import ProjectionHead, SupCon
+from models.dino import DINO
+from models.dino import DINOv2
+from models.fsl_models import WrappedFsl
+from models.phikon import Phikon
+from models.resnet import ResNet, get_resnet_backbone
+from models.uni import UNI
+from models.virchow2 import Virchow2
+from models.vit import ViT
+from models.n_branch_mlp import N_BranchMLP
+from utils.checkpoint_utils import load_checkpoint
 
 
-def get_model(model_config):
-    model_code = model_config.get('model_code').lower()
+def get_model(model_config: dict[str, Any], hf_token: Optional[str] = None):
+    assert 'model_code' in model_config.keys(), "No `model_code` key found. Cannot construct model."
+    model_code = model_config['model_code'].lower().strip()
 
-    if model_code == 'resnet':
+    if pfm.models.is_model_available(model_str=model_code):
+        model = pfm.models.load_foundation_model(model_type=model_code, token=hf_token)
+
+    elif model_code == 'resnet':
         model = ResNet(model_config)
 
     elif model_code == 'dino':
@@ -85,36 +85,14 @@ def get_model(model_config):
 
     ################### Few-Shot Learning Models ######################################
 
-    elif model_code == 'resnet_fsl':   # Pathology Foundation Model
-        model = ResNetFsl(model_config)
+    elif 'fsl' in model_code:
+        model = WrappedFsl.from_config(model_config=model_config, hf_token=hf_token)
 
-    elif model_code == 'dino_fsl':
-        model = DinoFsl(model_config)
+    ################### n-Branch MLP Attention Metric #################################
 
-    elif model_code == 'dinov2_fsl':
-        model = DINOv2Fsl(model_config)
-
-    elif model_code == 'vit_fsl':
-        model = ViTFsl(model_config)
-
-    elif model_code == 'uni_fsl':   # Pathology Foundation Model
-        model = UNIFsl(model_config)
-
-    elif model_code == 'UNI2-h_fsl':   # Pathology Foundation Model
-        # UNI2-h is a variant of UNI, so we can use the same class,
-        # but we need to ensure the model_config is correctly set
-        model = UNIFsl(model_config)
-
-    elif model_code == 'virchow2_fsl':   # Pathology Foundation Model
-        model = Virchow2Fsl(model_config)
-
-    elif model_code == 'phikon_fsl':   # Pathology Foundation Model
-        model = PhikonFsl(model_config)
-
-    elif model_code == 'phikon-v2_fsl':   # Pathology Foundation Model
-        # Phikon-v2 is a variant of Phikon, so we can use the same class,
-        # but we need to ensure the model_config is correctly set
-        model = PhikonFsl(model_config)
+    elif 'branch_mlp' in model_code:
+        model = N_BranchMLP(model_config)
+        print(model)
 
     else:
         raise ValueError(f'Model {model_code} is not supported')

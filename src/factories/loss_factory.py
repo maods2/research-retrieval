@@ -1,15 +1,6 @@
-from losses.contrastive_loss import ArcFaceLoss
-from losses.contrastive_loss import MultiSimilarityLoss
-from losses.contrastive_loss import NPairLoss
-from losses.contrastive_loss import NTXentLoss
-from losses.contrastive_loss import ProxyNCALoss
-from losses.contrastive_loss import SupConLoss
-from losses.prototypical_loss import PrototypicalLoss
-from losses.supervised_hashing_loss import SupervisedHashingLoss
-from losses.triplet_loss import AdaptiveTripletLoss
-
 import torch.nn as nn
 
+import losses as L
 
 def get_loss(loss_config):
     loss_name = loss_config['name']
@@ -23,23 +14,25 @@ def get_loss(loss_config):
     elif loss_name == 'mse':
         loss_fn = nn.MSELoss()
     elif loss_name == 'adaptative_triplet':
-        loss_fn = AdaptiveTripletLoss()
+        loss_fn = L.AdaptiveTripletLoss()
     elif loss_name == 'prototypical':
-        loss_fn = PrototypicalLoss(loss_config)
+        loss_fn = L.PrototypicalLoss(loss_config)
     elif loss_name == 'ntxent':
-        loss_fn = NTXentLoss(loss_config)
+        loss_fn = L.NTXentLoss(loss_config)
     elif loss_name == 'supervised_contrastive':
-        loss_fn = SupConLoss(loss_config)
+        loss_fn = L.SupConLoss(loss_config)
     elif loss_name == 'proxy_nca':
-        loss_fn = ProxyNCALoss(loss_config)
+        loss_fn = L.ProxyNCALoss(loss_config)
     elif loss_name == 'multi_similarity':
-        loss_fn = MultiSimilarityLoss(loss_config)
+        loss_fn = L.MultiSimilarityLoss(loss_config)
     elif loss_name == 'arcface':
-        loss_fn = ArcFaceLoss(loss_config)
+        loss_fn = L.ArcFaceLoss(loss_config)
     elif loss_name == 'npair':
-        loss_fn = NPairLoss(loss_config)
+        loss_fn = L.NPairLoss(loss_config)
     elif loss_name == 'supervised_hashing':
-        loss_fn = SupervisedHashingLoss(loss_config)
+        loss_fn = L.SupervisedHashingLoss(loss_config)
+    elif loss_name in ('sca', 'supervised_contrastive_attention'):
+        loss_fn = L.SupervisedContrastiveAttention(loss_config)
 
     else:
         raise ValueError(f'Loss function {loss_name} is not supported')

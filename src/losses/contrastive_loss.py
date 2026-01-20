@@ -1,8 +1,10 @@
-from torch import nn
+from typing import Any
 
 import torch
+from torch import nn
 import torch.nn.functional as F
 
+from src.factories.metric_factory import get_similarity_function, cosine_similarity
 
 class NTXentLoss(nn.Module):
     """
@@ -201,3 +203,69 @@ class NPairLoss(torch.nn.Module):
             / torch.exp(sim_matrix * neg_mask).sum(dim=1)
         )
         return loss.mean()
+
+class SupervisedContrastiveAttention(torch.nn.Module):
+    """
+    Source: https://arxiv.org/abs/2004.11362
+    Paper "Supervised Contrastive Learning" by Khosla et al.
+    """
+    def __init__(self, loss_config: dict[str, Any]):  # NOTE: this default is common in papers
+        super().__init__()
+        self.temperature = loss_config.get("temperature", 0.7) 
+        # NOTE: similarities from factory use sklearn, we need torch implementation
+        #sim_fn = loss_config.get("pairwise_similarity_fn")
+        #self.pairwise_similarity = get_similarity_function(sim_fn) if sim_fn else torch.cosine_similarity
+        self.pairwise_similarity = self._pairwise_cosine_sim
+
+    def _pairwise_cosine_sim(self,x: torch.Tensor, y: torch.Tensor | None = None) -> torch.Tensor:
+        """
+        Simple pairwise (each row of x with each row of y) cosine.
+        """
+        if y is None:
+            y = x
+        norm_x: torch.Tensor = torch.linalg.norm(x, ord=2, dim=-1).reshape(x.shape[0], 1)  # (N, 1)
+        norm_y: torch.Tensor = torch.linalg.norm(y, ord=2, dim=-1).reshape(y.shape[0], 1)  # (N, 1)
+        pairwise_cosine = (x @ y.t()) / (norm_x @ norm_y.t())
+        return pairwise_cosine
+    
+
+    def forward(self, embeddings: tuple[torch.Tensor,torch.Tensor], labels: tuple[torch.Tensor,torch.Tensor]):
+        """
+        Args:
+           embeddings: Tuple (X_q, X_k) containing query and key embeddings, in this order.
+           labels: Tuple (y_q, y_k) containing query and key labels, in this order.
+        """
+        assert len(embeddings) == len(labels), \
+            f"Shape mismatch between embeddings and labels. Received shapes {len(embeddings)} and {len(labels)} respectively. Have you forgotten to pass a key or a query?"
+
+        X_q, X_k = embeddings
+        y_q, y_k = labels
+
+        device = 'cuda' if torch.cuda.is_available() else 'cpu'
+        X_q, X_k, y_q, y_k = X_q.to(device), X_k.to(device), y_q.to(device), y_k.to(device) 
+
+        N_Q, N_K = len(y_q), len(y_k)
+
+        S = self.pairwise_similarity(X_q, X_k)  # (N_Q, N_K)
+        S = torch.exp(S / self.temperature)  # (N_Q, N_K)
+        not_anchor_mask = torch.ones((N_Q, N_K), device=X_q.device) - torch.eye(N_Q, N_K, device=X_q.device)  # (N_Q, N_K)
+        norm_factor = (S * not_anchor_mask).sum(dim=1).unsqueeze(dim=-1)  # (N_Q, 1)
+        loss_terms = torch.log(S / norm_factor)  # (N_Q, N_K)
+        
+
+        # NOTE: we want to manually indicate that loss requires_grad
+        # here because in the (rare) case there are no positives pairs (j != i such that y_q[i] == y_k[j]) then loss will be a tensor
+        # without a grad function
+        loss = torch.tensor([0.0], device=X_q.device, requires_grad=True)
+        for i in range(len(X_q)):
+            positives_mask = (y_k == y_q[i]).to(dtype=y_k.dtype) * not_anchor_mask[i]
+            if (positives_mask.sum() > 0):  # avoid zero division
+                # if there are not positives, the mask would also be 0
+                # and we'd have 0/0 indetermination. We take it to be 0 and ignore it
+                
+                # NOTE: in-place operation "+="" breaks
+                # because we can't apply an in-place operation to
+                # a leaf tensor that requires_grad
+                loss = loss + (-1) / (positives_mask.sum()) * (loss_terms[i] * positives_mask).sum()
+        return loss
+    

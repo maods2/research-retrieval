@@ -1,4 +1,4 @@
-data:
+sdata:
   train_dir: data/ubc-ovarian-cancer/train
   test_dir: data/ubc-ovarian-cancer/test-retrieval
   class_mapping: {CC: 0, EC: 1, HGSC: 2, LGSC: 3, MC: 4}

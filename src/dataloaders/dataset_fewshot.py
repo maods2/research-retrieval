@@ -1,35 +1,41 @@
-from albumentations.pytorch import ToTensorV2
+import os
+import sys
+import time
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+import random
 from pathlib import Path
-from PIL import Image
-from torch.utils.data import Dataset
-from tqdm import tqdm
-from typing import Any
-from typing import Dict
-from typing import List
-from typing import Tuple
+from typing import *
+from abc import ABC, abstractmethod
 
-import albumentations as A
 import cv2
 import numpy as np
-import os
-import random
-import sys
+from PIL import Image
+from tqdm import tqdm
+import albumentations as A
+
 import torch
+from torch.utils.data import Dataset
+from albumentations.pytorch import ToTensorV2
 
 
-sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from dataloaders.dataset import StandardImageDataset
 
-
-class FewShotFolderDataset(StandardImageDataset):
+class FewShotFolderDataset(StandardImageDataset, ABC):
     def __init__(
-        self, root_dir, transform=None, class_mapping=None, config=None
+        self, 
+        root_dir: str,
+        config: dict[str, Any],
+        transform: Optional[Callable] = None, 
+        class_mapping: Optional[dict[str, int]] = None, 
     ):
         """ """
         super(FewShotFolderDataset, self).__init__(
-            root_dir, transform, class_mapping, config
+            root_dir=root_dir, 
+            transform=transform, 
+            class_mapping=class_mapping, 
+            config=config
         )
-        self.validation_dataset = None
+        self.validation_dataset = None #TODO: Adapt to use the validation subset provided by the super class.
         self.root_dir = Path(root_dir)
         self.n_way = config['model'].get(
             'n_way', 2
@@ -41,10 +47,6 @@ class FewShotFolderDataset(StandardImageDataset):
             'q_queries', 6
         )   #  query shots per class
         self.transform = transform
-
-        self.classes = [
-            (i, cls) for i, cls in enumerate(list(self.class_mapping.keys()))
-        ]
 
     def __len__(self):
         """
@@ -93,6 +95,32 @@ class FewShotFolderDataset(StandardImageDataset):
         return cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
 
+    @abstractmethod
+    def __getitem__(self, idx):
+        raise NotImplementedError()
+
+class VariableFewShotFolderDataset(FewShotFolderDataset):
+    """ 
+    Few-shot dataset where the support changes for every query.
+    """
+    def __init__(
+        self, 
+        root_dir: str, 
+        config: dict[str, Any],
+        transform: Optional[Callable] = None, 
+        class_mapping: Optional[dict[str, int]] = None, 
+    ):
+        super().__init__(
+            root_dir=root_dir, 
+            transform=transform, 
+            class_mapping=class_mapping, 
+            config=config
+        )
+
+        if self.k_shot == -1:
+            raise ValueError("You need to specific the number of image per class in the support set for VariableFewShotFolderDataset. " \
+            "If you want to use the whole dataset as the SupportSet, use FixedFewShotFolderDataset with k_shot as -1.")
+
     def __getitem__(self, idx):
         if self.validation_dataset is not None:
             return self._validation__getitem__(idx)
@@ -102,7 +130,8 @@ class FewShotFolderDataset(StandardImageDataset):
         support_imgs, support_lbls = [], []
         query_imgs, query_lbls = [], []
 
-        for i, cls in selected:
+        for cls in selected:
+            #print(cls, self.class_mapping[cls], self.image_dict[self.class_mapping[cls]])
             imgs = random.sample(
                 self.image_dict[self.class_mapping[cls]],
                 self.k_shot + self.q_queries,
@@ -115,14 +144,14 @@ class FewShotFolderDataset(StandardImageDataset):
                 if self.transform:
                     img = self.transform(image=img)['image']
                 support_imgs.append(img)
-                support_lbls.append(i)
+                support_lbls.append(self.class_mapping[cls])
 
             for p in query_paths:
                 img = self._open_image(p)
                 if self.transform:
                     img = self.transform(image=img)['image']
                 query_imgs.append(img)
-                query_lbls.append(i)
+                query_lbls.append(self.class_mapping[cls])
 
         support = torch.stack(support_imgs)      # [n_way*k_shot, C, H, W]
         query = torch.stack(query_imgs)        # [n_way*q_queries, C, H, W]
@@ -133,24 +162,139 @@ class FewShotFolderDataset(StandardImageDataset):
             torch.tensor(query_lbls),
         )
 
+class FixedFewshotFolderDataset(FewShotFolderDataset):
+    """ 
+    Few-shot dataset where the support is pre-selected and fixed for every query.
+    """
+    def __init__(
+        self, 
+        root_dir: str, 
+        config: dict[str, Any],
+        transform: Optional[Callable] = None, 
+        class_mapping: Optional[dict[str, int]] = None, 
+    ):
+        super().__init__(
+            root_dir=root_dir, 
+            transform=transform, 
+            class_mapping=class_mapping, 
+            config=config
+        )
+
+        self.support_paths = []
+        self.support_lbls = []
+        self.support = None
+
+        if os.path.exists(os.path.join(root_dir, "support_set.npz")):
+            self._load_existing_support_set(root_dir)
+
+        elif self.k_shot == -1:
+            """
+            Support set will be the entire dataset.
+            """
+            self.support_lbls = []
+            support_imgs = []
+            for cls in self.classes:
+                cls_img_paths = self.image_dict[self.class_mapping[cls]]
+                support_imgs += cls_img_paths
+                for fpath in cls_img_paths:
+                    img = self._open_image(fpath)
+                    if self.transform:
+                        img = self.transform(image=img)['image']
+                    support_imgs.append(img)
+                    self.support_lbls.append(self.class_mapping[cls])
+
+            self.support = torch.stack(support_imgs)      # [n_way*k_shot, C, H, W]
+            self.support_lbls = torch.stack(self.support_lbls)
+            
+            if config['data'].get('save_support_set', True):
+                self._export_support_set(root_dir)
+
+        else:
+            # Construct support set
+            support_imgs = []
+            selected = random.sample(self.classes, self.n_way)
+            for cls in selected:
+                cls_img_paths = random.sample(population=self.image_dict[self.class_mapping[cls]], k=self.k_shot)
+                self.support_paths += cls_img_paths 
+                for fpath in cls_img_paths:
+                    img = self._open_image(fpath)
+                    if self.transform:
+                        img = self.transform(image=img)['image']
+                    support_imgs.append(img)
+                    self.support_lbls.append(torch.tensor(self.class_mapping[cls]))
+
+            self.support = torch.stack(support_imgs)      # [n_way*k_shot, C, H, W]
+            self.support_lbls = torch.stack(self.support_lbls) # [n_way*k_shot]
+
+            if config['data'].get('save_support_set', True):
+                self._export_support_set(root_dir)
+
+    def _load_existing_support_set(self, root_dir: str):
+        support_set_dict = np.load(
+            os.path.join(root_dir, "support_set.npz"), 
+            allow_pickle=True
+        )
+        self.support = support_set_dict['images']
+        self.support_lbls = support_set_dict['labels']
+
+    def _export_support_set(self, root_dir: str):
+        support_set_dict = {
+            "images": self.support,
+            "labels": self.support_lbls
+        }
+
+        np.savez(
+        os.path.join(root_dir, f"support_set.npz"),
+            **support_set_dict
+        )
+
+    def __getitem__(self, idx):
+        if self.validation_dataset is not None:
+            return self._validation__getitem__(idx)
+
+        # Randomly select n_way classes
+        selected = random.sample(self.classes, self.n_way)
+        query_imgs, query_lbls = [], []
+
+        for cls in selected:
+            #print(cls, self.class_mapping[cls], self.image_dict[self.class_mapping[cls]])
+            query_paths = random.sample(
+                self.image_dict[self.class_mapping[cls]],
+                self.q_queries,
+            )
+
+            for p in query_paths:
+                img = self._open_image(p)
+                if self.transform:
+                    img = self.transform(image=img)['image']
+                query_imgs.append(img)
+                query_lbls.append(self.class_mapping[cls])
+
+        query = torch.stack(query_imgs)        # [n_way*q_queries, C, H, W]
+        return (
+            self.support,
+            self.support_lbls,
+            query,
+            torch.tensor(query_lbls),
+        )
 
 class SupportSetDataset(StandardImageDataset):
     def __init__(
         self,
-        root_dir,
-        transform=None,
-        class_mapping=None,
-        config=None,
-        n_per_class=None,
+        root_dir: str,
+        config: dict[str, Any],
+        transform: Optional[Callable] = None,
+        class_mapping: Optional[dict[str, int]] = None,
+        n_per_class: Optional[int] = None,
     ):
         """
         Dataset para carregar conjuntos de suporte para few-shot learning.
 
         Args:
             root_dir (str): Caminho base onde estão as imagens.
+            config (dict): Dicionário com configurações, incluindo paths e transformações.
             transform (callable, optional): Transformações para aplicar nas imagens.
             class_mapping (dict): Mapeamento de nomes de classe para índices.
-            config (dict): Dicionário com configurações, incluindo paths e transformações.
             n_per_class (int): Número de imagens por classe a serem amostradas.
         """
         self.root_dir = root_dir
@@ -222,67 +366,3 @@ class SupportSetDataset(StandardImageDataset):
 
         return image, label
 
-
-if __name__ == '__main__':
-    import os
-    import sys
-
-    sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-    from albumentations.pytorch import ToTensorV2
-    from torch.utils.data import DataLoader
-
-    import albumentations as A
-
-    root_dir = './datasets/final/glomerulo/train'
-    custom_mapping = {
-        'Crescent': 0,
-        'Hypercellularity': 1,
-        'Membranous': 2,
-        'Normal': 3,
-        'Podocytopathy': 4,
-        'Sclerosis': 5,
-    }
-    config = {'model': {'n_way': 6, 'k_shot': 5, 'q_queries': 6}}
-
-    # Define transformations using Albumentations
-    data_transforms = A.Compose(
-        [
-            A.Resize(224, 224),
-            A.Normalize(mean=(0.5, 0.5, 0.5), std=(0.5, 0.5, 0.5)),
-            ToTensorV2(),
-        ]
-    )
-
-    # Create the dataset
-    dataset = FewShotFolderDataset(
-        root_dir=root_dir,
-        transform=data_transforms,
-        class_mapping=custom_mapping,
-        config=config,
-    )
-    train_loader = DataLoader(
-        dataset,
-        batch_size=1,
-        shuffle=False,
-        num_workers=3,
-        pin_memory=True,
-    )
-    test_loader = DataLoader(
-        dataset,
-        batch_size=36,
-        shuffle=False,
-        num_workers=3,
-        pin_memory=True,
-    )
-
-    # Test the train loader
-    support, s_lbls, query, q_lbls = next(iter(train_loader))
-    print(f'Support shape: {support.shape}, Labels: {s_lbls.shape}')
-    print(f'Query shape: {query.shape}, Labels: {q_lbls.shape}')
-
-    # test the test loader
-    test_loader.dataset.k_shot = 1
-    test_loader.dataset.validation_dataset = True
-    query, q_lbls = next(iter(test_loader))
-    print(f'Query shape: {query.shape}, Labels: {q_lbls.shape}')
-    print()

@@ -1,12 +1,100 @@
+from typing import Optional, Callable
+
+import torch
+from torch.utils.data import DataLoader
+from torchvision.datasets import ImageFolder
+
+import pathology_foundation_models as pfm
+
 from dataloaders.dataset import StandardImageDataset
 from dataloaders.dataset_contrastive import ContrastiveDataset
-from dataloaders.dataset_fewshot import FewShotFolderDataset
+from dataloaders.dataset_fewshot import FixedFewshotFolderDataset, VariableFewShotFolderDataset
 from dataloaders.dataset_triplet import TripletDataset
-from dataloaders.dataset_supervised_hashing import SupervisedHashingDataset
-from torch.utils.data import DataLoader
+from dataloaders.dataset_embedding import EmbeddingDataset
+from dataloaders.dataset_embedding_precomputed import PrecomputedEmbeddingDataset
+
+from factories.model_factory import get_model
+from utils.auth_utils import get_hf_token
+
+def get_dataset(config, transform_train: Optional[Callable] = None, transform_test: Optional[Callable] = None):
+    data_config = config['data']  # Extract data config from the main config
+
+    # Get transformations based on config
+    dataset_name = data_config.get(
+        'dataset_type', 'StandardImageDataset'
+    )  # Default to TerumoImageDataset
+
+    # Select dataset class dynamically based on config
+    match (dataset_name):
+        case 'StandardImageDataset':
+            dataset_class = StandardImageDataset
+        case 'TripletDataset':
+            dataset_class = TripletDataset
+        case 'FewShotFolderDataset':
+            if config['data'].get('fixed_support_set', False):
+                dataset_class = FixedFewshotFolderDataset 
+            else:
+                dataset_class = VariableFewShotFolderDataset
+        case 'ContrastiveDataset':
+            dataset_class = ContrastiveDataset
+        case 'EmbeddingDataset':
+            dataset_class = EmbeddingDataset
+        case 'PrecomputedEmbeddingDataset':
+            dataset_class = PrecomputedEmbeddingDataset
+        case _:
+            raise ValueError(f'Dataset {dataset_name} is not supported.')
+
+    assert dataset_class is not None, "Unreachable"
+    if dataset_class is PrecomputedEmbeddingDataset:
+        # special case, no image directories, load from npz files
+        train_dataset = dataset_class.from_npz(
+            npz_path=data_config['train_npz_path'],
+            class_mapping=data_config['class_mapping'],
+        )
+
+        test_dataset = dataset_class.from_npz(
+            npz_path=data_config['test_npz_path'],
+            class_mapping=data_config['class_mapping'],
+        )
+        return train_dataset, test_dataset
+
+    # if dataset_class != EmbeddingDataset:
+    # Create dataset instances for training and evaluation
+    train_dataset = dataset_class(
+        root_dir=data_config['train_dir'],  # Directory for training data
+        transform=transform_train,  # Transformations to apply
+        class_mapping=data_config['class_mapping'],  # Custom class mappings
+        config=config,  # Additional config for dataset
+    )
+
+    test_dataset = dataset_class(
+        root_dir=data_config['test_dir'],  # Directory for evaluation data
+        transform=transform_test,  # Transformations to apply
+        class_mapping=data_config['class_mapping'],  # Custom class mappings
+        config=config,  # Additional config for dataset
+    )
+    return train_dataset, test_dataset
+    # else: # HACK
+    #     embedding_dataset = EmbeddingDataset( 
+    #         root_dir=data_config['data_path'],
+    #         transform=transform_train,
+    #         class_mapping=data_config['class_mapping'],
+    #         config=config,
+    #         test_split=data_config['train_test_split']
+    #     )
+    #     train_dataset = torch.utils.data.Subset(
+    #         embedding_dataset,
+    #         embedding_dataset.train_idxs
+    #     )
+    #     test_dataset = torch.utils.data.Subset(
+    #         embedding_dataset,
+    #         embedding_dataset.test_idxs
+    #     )
+    #     return train_dataset, test_dataset
+        
 
 
-def get_dataloader(config, transform_train, transforms_test):
+def get_dataloader(config, transform_train: Optional[Callable] = None, transform_test: Optional[Callable] = None):
     """
     Factory function to get data loaders for train and test sets.
 
@@ -20,47 +108,18 @@ def get_dataloader(config, transform_train, transforms_test):
         test_loader (DataLoader): PyTorch DataLoader for the test set
     """
     data_config = config['data']  # Extract data config from the main config
-    # Get transformations based on config
-    dataset_name = config['model'].get(
-        'dataloader_type', 'StandardImageDataset'
-    )  # Default to TerumoImageDataset
 
-    data_loaders = {"train": None, "test": None}
-    
-    for split in data_loaders.keys():
-        # Select dataset class dynamically based on config
-        if dataset_name[split] == 'StandardImageDataset':
-            data_loaders[split] = StandardImageDataset
-        elif dataset_name[split] == 'TripletDataset':
-            data_loaders[split] = TripletDataset
-        elif dataset_name[split] == 'FewShotFolderDataset':
-            data_loaders[split] = FewShotFolderDataset
-        elif dataset_name[split] == 'ContrastiveDataset':
-            data_loaders[split] = ContrastiveDataset
-        elif dataset_name[split] == 'SupervisedHashingDataset':
-            data_loaders[split] = SupervisedHashingDataset
-        else:
-            raise ValueError(f'Dataset {dataset_name[split]} is not supported.')
-    # Create dataset instances for training and evaluation
-    train_dataset = data_loaders['train'](
-        root_dir=data_config['train_dir'],  # Directory for training data
-        transform=transform_train,  # Transformations to apply
-        class_mapping=data_config['class_mapping'],  # Custom class mappings
-        config=config,  # Additional config for dataset
-    )
-
-    test_dataset = data_loaders['test'](
-        root_dir=data_config['test_dir'],  # Directory for evaluation data
-        transform=transforms_test,  # Transformations to apply
-        class_mapping=data_config['class_mapping'],  # Custom class mappings
-        config=config,  # Additional config for dataset
+    train_dataset, test_dataset = get_dataset(
+        config=config,
+        transform_train=transform_train,
+        transform_test=transform_test
     )
 
     # Create DataLoader instances for both datasets
     train_loader = DataLoader(
         train_dataset,
         batch_size=data_config['batch_size_train'],  # Define the batch size
-        shuffle=data_config.get('suffle_train', True),  # Shuffle for training
+        shuffle=data_config.get('shuffle_train', True),  # Shuffle for training
         num_workers=data_config[
             'num_workers'
         ],  # Number of workers for data loading
@@ -75,7 +134,7 @@ def get_dataloader(config, transform_train, transforms_test):
         test_dataset,
         batch_size=batch_size_eval,  # Define the batch size
         shuffle=data_config.get(
-            'suffle_test', False
+            'shuffle_test', False
         ),  # No need to shuffle test set
         num_workers=data_config[
             'num_workers'

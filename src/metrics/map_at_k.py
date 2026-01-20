@@ -55,29 +55,26 @@ class MapAtK(BaseMetric):
         """
         Calculate Mean Average Precision at k for image retrieval.
 
-        Parameters:
-        -----------
-        embeddings_dict : dict
-            Dictionary containing the following keys:
-            - 'query_embeddings': Embeddings of query images
-            - 'query_labels': Labels of query images
-            - 'query_classes': Class names of query images
-            - 'query_paths': Paths to query images
-            - 'db_embeddings': Embeddings of database images
-            - 'db_labels': Labels of database images
-            - 'db_path': Paths to database images (new key)
-            - 'class_mapping': Dictionary mapping labels to class names
-        k_total : int
-            Number of retrievals to consider
-        is_last : bool, optional
-            Whether this is the last k value to evaluate (determines whether to return full results)
+        Args:
+            embeddings_dict (dict) : 
+                Dictionary containing the following keys:
+                - 'query_embeddings': Embeddings of query images
+                - 'query_labels': Labels of query images
+                - 'query_classes': Class names of query images
+                - 'query_paths': Paths to query images
+                - 'db_embeddings': Embeddings of database images
+                - 'db_labels': Labels of database images
+                - 'db_path': Paths to database images (new key)
+                - 'class_mapping': Dictionary mapping labels to class names
+            k_total (int) : 
+                Number of retrievals to consider
+            is_last (bool, optional):
+                Whether this is the last k value to evaluate (determines whether to return full results)
 
         Returns:
-        --------
-        float
-            MAP@k value
-        dict or None
-            Full retrieval results if is_last is True, None otherwise
+            tuple[float, dict | None] : tuple containing 
+                - MAP@k value
+                - Full retrieval results if is_last is True, None otherwise
         """
         # Extract data from embeddings dictionary
         query_embeddings = embeddings_dict['query_embeddings']
@@ -207,11 +204,10 @@ class MapAtK(BaseMetric):
         # Calculate MAP@k for each k value
         for k in self.k_values:
             is_last = k == max(self.k_values)
-            map_results[f'mapAt{k}'], query_retrievals_at_k = self.map_at_k(
+            map_results[k], query_retrievals_at_k = self.map_at_k(
                 embeddings, k, is_last
             )
-            _map_at_k = map_results[f'mapAt{k}']
-            logger.info(f'MAP@{k}: {_map_at_k:.4f}')
+            logger.info(f'MAP@{k}: {map_results[k]:.4f}')
 
         # Store the last query retrievals
         if query_retrievals_at_k:

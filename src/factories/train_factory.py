@@ -1,36 +1,33 @@
+import pipelines.training_pipes as pipelines
+
 def get_train_function(config):
 
-    if config['training']['pipeline'] == 'default_trainer':
-        from pipelines.training_pipes.default_trainer import DefaultTrainer
+    match config['training']['pipeline']:
+        case 'default_trainer':
+            return pipelines.DefaultTrainer(config)
 
-        return DefaultTrainer(config)
+        case 'fsl_trainer':
+            if config['data'].get('fixed_supportset', False):
+                return pipelines.FixedSSFewShotTrainer(config)
+            else:
+                return pipelines.FewShotTrainer(config)
 
-    elif config['training']['pipeline'] == 'fsl_trainer':
-        from pipelines.training_pipes.few_shot_trainer import FewShotTrainer
+        case 'terumo_trainer':
+            return pipelines.TerumoContrastiveTrainer(config)
 
-        return FewShotTrainer(config)
+        case 'supcon_trainer':
+            return pipelines.SupConTrainer(config)
 
-    elif config['training']['pipeline'] == 'supcon_trainer':
-        from pipelines.training_pipes.supcon_trainer import SupConTrainer
+        case 'supervised_hashing_trainer':
+            return pipelines.SupervisedHashingTrainer(config)
 
-        return SupConTrainer(config)
-
-    elif config['training']['pipeline'] == 'supervised_hashing_trainer':
-        from pipelines.training_pipes.supervised_hashing_trainer import SupervisedHashingTrainer
-
-        return SupervisedHashingTrainer(config)
-
-    elif config['training']['pipeline'] == 'triplet_trainer':
-        from pipelines.training_pipes.triplet_trainer import TripletTrainer
-
-        return TripletTrainer(config)
-    
-    elif config['training']['pipeline'] == 'autoencoder_trainer':
-        from pipelines.training_pipes.autoencoder_trainer import AutoencoderTrainer
-
-        return AutoencoderTrainer(config)
-    
-    else:
-        raise ValueError(
-            f'Training pipeline {config["training"]["pipeline"]} is not supported'
-        )
+        case 'triplet_trainer':
+            return pipelines.TripletTrainer(config)
+        
+        case 'autoencoder_trainer':
+            return pipelines.AutoencoderTrainer(config)
+        
+        case _:
+            raise ValueError(
+                f'Training pipeline {config["training"]["pipeline"]} is not supported'
+            )

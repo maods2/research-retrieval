@@ -13,10 +13,27 @@
             "console": "integratedTerminal",
             "args": [
                     "--config",
-                    "${workspaceFolder}/configs/templates/default_train.yaml",
+                    "${workspaceFolder}/configs/testing/few-shot-test.yaml",
                     "--pipeline",
                     "train"
                 ]
-        }
+        },
+        {
+            "name": "Debug E2E training loop",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/src/main.py",
+            "console": "integratedTerminal",
+            "args": [
+                "--config",
+                "${workspaceFolder}/configs/testing/train-att-metric.yml",
+                "--pipeline",
+                "train"
+            ],
+            "env": {
+                "HF_TOKEN": "YOUR_TOKEN"
+            },
+            "python": "<PATH_TO_YOUR_ENV>/bin/python3"
+        },
     ]
 }

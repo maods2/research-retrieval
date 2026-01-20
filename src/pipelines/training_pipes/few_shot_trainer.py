@@ -18,6 +18,7 @@ class FewShotTrainer(BaseTrainer):
     def __init__(self, config: dict):
         self.config = config
         super().__init__()
+        self.semantic_attributes = []
 
     def prototypical_loss(
         self,
@@ -199,3 +200,86 @@ class FewShotTrainer(BaseTrainer):
         ctx.metric_logger.log_json(train_history, 'train_metrics')
 
         return ctx.model
+
+class FixedSSFewShotTrainer(FewShotTrainer):
+    def __init__(self, config: dict):
+        super().__init__(config)
+        self.prototypes = None
+
+    def prototypical_loss(
+        self,
+        support_embeddings,
+        support_labels,
+        query_embeddings,
+        query_labels,
+        n_way,
+    ):
+        if not self.prototypes: 
+            self.prototypes = torch.stack(
+                [
+                    support_embeddings[support_labels == i].mean(0)
+                    for i in range(n_way)
+                ]
+            )
+
+        dists = torch.cdist(query_embeddings, self.prototypes)
+        log_p = (-dists).log_softmax(dim=1)
+        loss = F.nll_loss(log_p, query_labels)
+        acc = (log_p.argmax(1) == query_labels).float().mean().item()
+        return loss, acc
+
+    def eval_few_shot_classification(
+        self,
+        model: torch.nn.Module,
+        eval_loader: DataLoader,
+        support_set: Tuple[torch.Tensor, torch.Tensor],
+        device: str,
+        config: Dict[str, Any],
+        logger: Callable,
+    ) -> Dict[str, Any]:
+        """
+        Evaluate few-shot learning classification using support and query sets.
+
+        Args:
+            model: Model with feature embedding capability.
+            eval_loader: Dataloader providing (support, s_lbls, query, q_lbls) tuples.
+            support_set: Tuple containing support embeddings and labels.
+            config: Dictionary with configuration parameters. Expected: device.
+            logger: Logging function.
+
+        Returns:
+            Dictionary with evaluation metrics.
+        """
+
+        all_preds = []
+        all_labels = []
+        model.eval()
+
+        with torch.no_grad():
+            for query, q_lbls in tqdm(eval_loader, desc='Evaluating'):
+                # Remove batch dim [1, N, ...] -> [N, ...]
+                support = support_set[0].to(device)
+                s_lbls = support_set[1].to(device)
+                query = query.to(device)
+                q_lbls = q_lbls.to(device)
+
+                # Embed support and query
+                emb_s = model(support)  # [n_support, D]
+                emb_q = model(query)    # [n_query, D]
+
+                # Compute class prototypes
+                if not self.prototypes:
+                    self.prototypes = model.compute_prototypes(
+                        emb_s, s_lbls
+                    )  # [n_way, D]
+
+                # Calculate euclidean distance between query and prototypes
+                preds = model.predict_with_prototypes(emb_q, self.prototypes)
+
+                all_preds.append(preds.cpu().numpy())
+                all_labels.append(q_lbls.cpu().numpy())
+
+        y_true = np.concatenate(all_labels)
+        y_pred = np.concatenate(all_preds)
+
+        return compute_metrics(y_true, y_pred, logger)

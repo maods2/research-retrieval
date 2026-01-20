@@ -3,43 +3,59 @@ https://huggingface.co/MahmoodLab/UNI
 https://github.com/mahmoodlab/UNI
 https://www.nature.com/articles/s41591-024-02857-3.epdf?sharing_token=CzM2TCW_6hilYJ6BCMgx5dRgN0jAjWel9jnR3ZoTv0PwDLGHgijc_t52lQyxVvw552KDCUhMbS4KuO_rvLnP6S1BpmIj9puojkF8lfR5R8uEX08B0FxePgIH0t7DovKvZF4NHQKlq4TZHGAA1wEIdkYKvcr8nUsaa-nNYbNw3JI%3D
 """
-
-from src.models.dino import DINO
-from src.models.dino import DINOv2
-from src.models.phikon import Phikon
-from src.models.resnet import ResNet
-from src.models.uni import UNI
-from src.models.virchow2 import Virchow2
-from src.models.vit import ViT
-from torch import Tensor
-
 import os
+from typing import Optional, Any
+
 import timm
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+import pathology_foundation_models as pfm
 
 local_dir = './assets/ckpts/vit_large_patch16_224.dinov2.uni_mass100k/'
 
-
 class WrappedFsl(nn.Module):
-    def __init__(self, backbone, hidden_dim=512, embedding_dim=128):
+    def __init__(
+        self, 
+        backbone: nn.Module | str, 
+        hidden_dim: Optional[int] = None, 
+        embedding_dim: Optional[int] = None,
+        hf_token: Optional[str] = None,
+        device: str = 'cuda',
+    ):
         super().__init__()
-        self.backbone = backbone
 
+        self.hidden_dim = hidden_dim if hidden_dim else 512
+        self.embedding_dim = embedding_dim if embedding_dim else 128
+        self.device = device
+
+        if isinstance(backbone, str):
+            backbone = pfm.models.load_foundation_model(backbone, token=hf_token, device=self.device)
+
+        assert isinstance(backbone, nn.Module)
+        self.add_module('backbone', backbone)
+
+        self.backbone.eval()
         with torch.no_grad():
-            test_tensor = torch.randn(1, 3, 224, 224)
-            out_dim = self.backbone(test_tensor).shape[-1]
-        # Create projection
-        self.projection = nn.Sequential(
-            nn.Linear(out_dim, hidden_dim),
-            nn.GELU(),
-            nn.Linear(hidden_dim, embedding_dim),
-        )
+            test_tensor = torch.randint(0, 255, (1, 3, 224, 224), dtype=torch.float32).to(self.device)
+            self.backbone_out_dim = self.backbone(test_tensor).shape[-1]
+
         # Freeze backbone if needed
         for param in self.backbone.parameters():
             param.requires_grad = False
+
+        # Create projection
+        self.add_module('projection', nn.Sequential(
+            nn.Linear(self.backbone_out_dim, self.hidden_dim),
+            nn.GELU(),
+            nn.Linear(self.hidden_dim, self.embedding_dim),
+        ).to(self.device))
+
+    def train(self, mode: bool = True):
+        super().train(mode)
+        self.backbone.eval() # assert that the backbone always is in evaluation mode
+        return self
 
     def compute_prototypes(
         self, embeddings: torch.Tensor, labels: torch.Tensor
@@ -87,77 +103,25 @@ class WrappedFsl(nn.Module):
         return (-dists).softmax(dim=1)
 
     def forward(self, x):
-        x = self.backbone(x)
+        with torch.no_grad():
+            x = self.backbone(x)
+
+        x = x.clone() # required by autograd.
         x = self.projection(x)
         return x
 
-
-class ResNetFsl(WrappedFsl):
-    def __init__(self, model_config):
-        super().__init__(
-            ResNet(model_config),
-            hidden_dim=model_config.get('hidden_dim', 512),
-            embedding_dim=model_config.get('embedding_dim', 128),
+    @staticmethod
+    def from_config(model_config: dict[str, Any], hf_token: Optional[str] = None):
+        return WrappedFsl(
+            backbone=model_config['model_name'], 
+            hidden_dim=model_config.get('hidden_dim'),
+            embedding_dim=model_config.get('embedding_dim'),
+            hf_token=hf_token,
         )
-
-
-class DinoFsl(WrappedFsl):
-    def __init__(self, model_config):
-        super().__init__(
-            DINO(model_name=model_config['model_name']),
-            hidden_dim=model_config.get('hidden_dim', 512),
-            embedding_dim=model_config.get('embedding_dim', 128),
-        )
-
-
-class DINOv2Fsl(WrappedFsl):
-    def __init__(self, model_config):
-        super().__init__(
-            DINOv2(model_name=model_config['model_name']),
-            hidden_dim=model_config.get('hidden_dim', 512),
-            embedding_dim=model_config.get('embedding_dim', 128),
-        )
-
-
-class ViTFsl(WrappedFsl):
-    def __init__(self, model_config):
-        super().__init__(
-            ViT(model_name=model_config['model_name']),
-            hidden_dim=model_config.get('hidden_dim', 512),
-            embedding_dim=model_config.get('embedding_dim', 128),
-        )
-
-
-class UNIFsl(WrappedFsl):
-    def __init__(self, model_config):
-        super().__init__(
-            UNI(model_name=model_config['model_name']),
-            hidden_dim=model_config.get('hidden_dim', 512),
-            embedding_dim=model_config.get('embedding_dim', 128),
-        )
-
-
-class Virchow2Fsl(WrappedFsl):
-    def __init__(self, model_config):
-        super().__init__(
-            Virchow2(model_name=model_config['model_name']),
-            hidden_dim=model_config.get('hidden_dim', 512),
-            embedding_dim=model_config.get('embedding_dim', 128),
-        )
-
-
-class PhikonFsl(WrappedFsl):
-    def __init__(self, model_config):
-        super().__init__(
-            Phikon(model_name=model_config['model_name']),
-            hidden_dim=model_config.get('hidden_dim', 512),
-            embedding_dim=model_config.get('embedding_dim', 128),
-        )
-
 
 if __name__ == '__main__':
-    model = UNIFsl()
-    model = model.to('cuda')
+    import os
+    model = WrappedFsl('uni', hf_token=os.getenv("HF_TOKEN"), device='cuda')
     model.eval()
     prototypes = torch.randn(5, 128).to('cuda')  # Dummy prototypes
     with torch.no_grad():
