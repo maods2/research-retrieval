@@ -4,7 +4,12 @@ import torch
 from torch.utils.data import DataLoader
 from torchvision.datasets import ImageFolder
 
-import pathology_foundation_models as pfm
+try:
+    import pathology_foundation_models as pfm
+    PFM_AVAILABLE = True
+except ImportError:
+    pfm = None
+    PFM_AVAILABLE = False
 
 from dataloaders.dataset import StandardImageDataset
 from dataloaders.dataset_contrastive import ContrastiveDataset

@@ -1,6 +1,11 @@
 import torch.optim as optim
 
-from pathology_foundation_models.models import FoundationModel
+try:
+    from pathology_foundation_models.models import FoundationModel
+    PFM_AVAILABLE = True
+except ImportError:
+    FoundationModel = None
+    PFM_AVAILABLE = False
 
 
 def get_optimizer(optimizer_config, model):
@@ -8,7 +13,7 @@ def get_optimizer(optimizer_config, model):
     lr = float(optimizer_config['lr'])
     weight_decay = float(optimizer_config.get('weight_decay', 0.0))
 
-    model_params = model.model.parameters() if isinstance(model, FoundationModel) else model.parameters()
+    model_params = model.model.parameters() if (PFM_AVAILABLE and isinstance(model, FoundationModel)) else model.parameters()
 
     if optimizer_name == 'adam':
         optimizer = optim.Adam(model_params)

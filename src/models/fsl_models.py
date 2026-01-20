@@ -11,7 +11,12 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-import pathology_foundation_models as pfm
+try:
+    import pathology_foundation_models as pfm
+    PFM_AVAILABLE = True
+except ImportError:
+    pfm = None
+    PFM_AVAILABLE = False
 
 local_dir = './assets/ckpts/vit_large_patch16_224.dinov2.uni_mass100k/'
 
@@ -31,6 +36,11 @@ class WrappedFsl(nn.Module):
         self.device = device
 
         if isinstance(backbone, str):
+            if not PFM_AVAILABLE:
+                raise ImportError(
+                    "Loading foundation models by string requires pathology_foundation_models. "
+                    "Install it from: pip install git+https://github.com/IgorPBorja/pathology-foundation-models.git"
+                )
             backbone = pfm.models.load_foundation_model(backbone, token=hf_token, device=self.device)
 
         assert isinstance(backbone, nn.Module)

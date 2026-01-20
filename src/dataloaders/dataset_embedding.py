@@ -1,5 +1,4 @@
 import os
-import pathology_foundation_models as pfm
 import torchvision.transforms as T
 import torch
 import albumentations as A
@@ -8,6 +7,13 @@ import numpy as np
 from torch.utils.data import Dataset
 from torchvision.datasets import ImageFolder
 from typing import Any, Callable
+
+try:
+    import pathology_foundation_models as pfm
+    PFM_AVAILABLE = True
+except ImportError:
+    pfm = None
+    PFM_AVAILABLE = False
 
 from utils.auth_utils import get_hf_token
 
@@ -43,6 +49,11 @@ class EmbeddingDataset(Dataset):
         self.generate_embeddings(config)
 
     def generate_embeddings(self, config):
+        if not PFM_AVAILABLE:
+            raise ImportError(
+                "EmbeddingDataset requires pathology_foundation_models. "
+                "Install it from: pip install git+https://github.com/IgorPBorja/pathology-foundation-models.git"
+            )
         batch_size = (
             config['data'].get('extraction_batch_size')
             or config['data']['batch_size_train']
