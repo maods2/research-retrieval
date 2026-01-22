@@ -222,7 +222,7 @@ def create_embeddings_dict(
 
     # set transforms to test transforms for eval
     train_loader.dataset.set_transform(
-        get_transforms(config['transform'].get('test', None))
+        get_transforms(config['transform'].get('test', None), config.get('model'))
     )
 
     logger.info('Creating embeddings database from training data...')

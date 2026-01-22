@@ -4,12 +4,13 @@ import albumentations as A
 import cv2
 
 
-def get_transforms(transform_config):
+def get_transforms(transform_config, model_config=None):
     """
     Factory function to get transformations based on the provided configuration.
 
     Args:
         transform_config (dict): A dictionary containing the configuration for various transformations.
+        model_config (dict, optional): Model configuration to determine if normalization should be skipped.
 
     Supported Transformations:
         - resize: Resizes the image to the specified height and width.
@@ -34,6 +35,17 @@ def get_transforms(transform_config):
     if not transform_config:
         print('No transformations provided, returning identity transform.')
         return A.Compose([])
+
+    # HACK: Check if normalization should be skipped for models that handle their own
+    models_skip_norm = {'phikon', 'phikon-v2', 'phikon_v2', 'dino', 'dinov2'}
+    skip_normalization = False
+    if model_config:
+        model_code = model_config.get('model_code', '').lower().strip()
+        model_name = model_config.get('model_name', '').lower().strip()
+        skip_normalization = any(
+            model in model_code or model in model_name 
+            for model in models_skip_norm
+        )
 
     transform_list = []
     if 'random_crop' in transform_config:
@@ -152,7 +164,7 @@ def get_transforms(transform_config):
     if transform_config.get('random_grayscale', False):
         transform_list.append(A.ToGray(p=transform_config['random_grayscale']))
 
-    if 'normalize' in transform_config:
+    if 'normalize' in transform_config and not skip_normalization:
         normalize_mean, normalize_std = tuple(
             transform_config['normalize']['mean']
         ), tuple(transform_config['normalize']['std'])
