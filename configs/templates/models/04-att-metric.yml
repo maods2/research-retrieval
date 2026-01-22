@@ -7,7 +7,6 @@ model:
   load_checkpoint: false # If true, load the checkpoint specified below
   checkpoint_path: ''
   freeze_params: true
-  encoder_dim: 134 # 128 + 6 classes (semantic attributes)
 
   # N_BRANCH_MLP
   n_mlp_branches: 2

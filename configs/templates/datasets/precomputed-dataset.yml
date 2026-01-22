@@ -1,0 +1,23 @@
+data:
+  dataset_type: PrecomputedEmbeddingDataset
+  train_npz_path: ./local_experiments/<model_code>/<dataset_name>/embeddings_train.npz
+  test_npz_path: ./local_experiments/<model_code>/<dataset_name>/embeddings_test.npz
+  #class_mapping: {Crescent: 0, Hypercelularidade: 1, Membranous: 2, Normal: 3, Podocitopatia: 4, Sclerosis: 5}
+  batch_size_train: 32
+  batch_size_eval: 64
+  num_workers: 0  # Number of workers to load the data
+
+  shuffle_train: true  # Shuffle the training data
+  shuffle_test: false # Shuffle the test data
+  shuffle_seed: 2025
+
+  semantic_attributes: true
+  
+transform:
+  train:
+    to_tensor: true
+  test:
+    to_tensor: true
+
+#model:
+  #num_classes: 6

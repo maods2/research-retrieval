@@ -1,0 +1,19 @@
+data:
+  dataset_type: PrecomputedEmbeddingDataset
+  train_npz_path: ./local_experiments/<model_code>/bracs/embeddings_train.npz
+  test_npz_path: ./local_experiments/<model_code>/bracs/embeddings_test.npz
+  batch_size_train: 32
+  batch_size_eval: 64
+  num_workers: 0
+  shuffle_train: true
+  shuffle_test: false
+  shuffle_seed: 2025
+  semantic_attributes: true
+  class_mapping: {0_N: 0, 1_PB: 1, 2_UDH: 2, 3_FEA: 3, 4_ADH: 4, 5_DCIS: 5, 6_IC: 
+      6}
+transform:
+  train: {to_tensor: true}
+  test: {to_tensor: true}
+model: 
+  num_classes: 7
+  encoder_dim: 135 # 128 + num_classes

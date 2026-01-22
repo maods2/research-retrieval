@@ -51,7 +51,7 @@ def generate(experiments):
         
         base_path = Path(f'configs/templates/general/{base_config}.yml')
         data_path = Path(f'configs/templates/datasets/{dataset_template}.yml')
-        out_dir = Path(f'test_configs/seb/{dataset_name}')
+        out_dir = Path(f'test_configs/att-metric/{dataset_name}')
         out_dir.mkdir(parents=True, exist_ok=True)
         
         model_path = Path(f'configs/templates/models/{model_template}.yml')
@@ -100,31 +100,50 @@ def main():
 
     models = [
         # model_code        model_name       model_templates
-        ("uni_fsl",             "uni",           "03-seb-fsl"),
-        ("uni2h_fsl",           "uni2h",         "03-seb-fsl"),
-        ("virchow_fsl",         "virchow",       "03-seb-fsl"),
-        ("virchow_v2_fsl",      "virchow_v2",    "03-seb-fsl"),
-        ("phikon_fsl",          "phikon",        "03-seb-fsl"),
-        ("phikon_v2_fsl",       "phikon_v2",     "03-seb-fsl"),
-        ("dino_fsl",            "dino_v1_b16",   "03-seb-fsl"),
-        ("dinov2_fsl",          "dino_v2_b",     "03-seb-fsl"),
+        # =========  Semantic Embedding Builder  ======== 
+        #("uni_fsl",             "uni",           "03-seb-fsl"),
+        #("uni2h_fsl",           "uni2h",         "03-seb-fsl"),
+        #("virchow_fsl",         "virchow",       "03-seb-fsl"),
+        #("virchow_v2_fsl",      "virchow_v2",    "03-seb-fsl"),
+        #("phikon_fsl",          "phikon",        "03-seb-fsl"),
+        #("phikon_v2_fsl",       "phikon_v2",     "03-seb-fsl"),
+        #("dino_fsl",            "dino_v1_b16",   "03-seb-fsl"),
+        #("dinov2_fsl",          "dino_v2_b",     "03-seb-fsl"),
         #("dinov3_fsl",         "dinov3",        "03-seb-fsl"),
+        # ==============  Attention Metric  =============
+        ("uni",             "uni",           "04-att-metric"),
+        ("uni2h",           "uni2h",         "04-att-metric"),
+        ("virchow",         "virchow",       "04-att-metric"),
+        ("virchow_v2",      "virchow_v2",    "04-att-metric"),
+        ("phikon",          "phikon",        "04-att-metric"),
+        ("phikon_v2",       "phikon_v2",     "04-att-metric"),
+        ("dino_v1_b16",     "dino_v1_b16",   "04-att-metric"),
+        ("dino_v2_b",       "dino_v2_b",     "04-att-metric"),
     ]
 
     datasets = [
     #   dataset_name   dataset_template
-        ("glomerulo", "glomerulo-fsl"),
-        #("glomerulo", "precomputed-glomerulo")
-        ("bracs", "bracs-fsl"),
-        ("crc-val-he-7k", "crc-val-he-7k-fsl"),
-        ("lung-colon", "lung-colon-fsl"),
-        ("skin-cancer", "skin-cancer-fsl"),
-        ("ubc-ovarian-cancer", "ubc-ovarian-cancer-fsl"),
+        # =========  Semantic Embedding Builder  ======== 
+        #("glomerulo", "glomerulo-fsl"),
+        #("bracs", "bracs-fsl"),
+        #("crc-val-he-7k", "crc-val-he-7k-fsl"),
+        #("lung-colon", "lung-colon-fsl"),
+        #("skin-cancer", "skin-cancer-fsl"),
+        #("ubc-ovarian-cancer", "ubc-ovarian-cancer-fsl"),
+        # ==============  Attention Metric  =============
+        ("glomerulo",          "precomputed-glomerulo"),
+        ("bracs",              "precomputed-bracs"),
+        ("crc-val-he-7k",      "precomputed-crc-val-he-7k"),
+        ("lung-colon",         "precomputed-lung-colon"),
+        ("skin-cancer",        "precomputed-skin-cancer"),
+        ("ubc-ovarian-cancer", "precomputed-ubc-ovarian-cancer"),
     ]
     
     pipelines =  [
-        #"terumo_trainer"
-        "fsl_trainer"
+        # =========  Semantic Embedding Builder  ======== 
+        #"fsl_trainer"
+        # ==============  Attention Metric  =============
+        "terumo_trainer"
     ]
 
     

@@ -32,13 +32,13 @@ train-all-models:
 	done
 
 # models="uni_fsl uni2h_fsl phikon_fsl phikon_v2_fsl virchow_fsl virchow_v2_fsl";
-train-metric-all-models:
-	datasets="glomerulo"; \
-	models="uni_fsl uni2h_fsl phikon_fsl phikon_v2_fsl virchow_fsl virchow_v2_fsl"; \
+train-att-metric-all-models:
+	datasets="glomerulo skin-cancer bracs ubc-ovarian-cancer lung-colon crc-val-he-7k"; \
+	models="uni uni2h phikon phikon_v2 virchow virchow_v2 dino_v1_b16 dino_v2_b"; \
 	for dataset in $$datasets; do \
 		for model in $$models; do \
 			echo "Training on $$dataset with $$model"; \
-			python3 src/main.py --config test_configs/lwe/$$dataset/$$model.yml --pipeline train; \
+			python3 src/main.py --config test_configs/att-metric/$$dataset/$$model.yml --pipeline train; \
 		done; \
 	done
 # ============================

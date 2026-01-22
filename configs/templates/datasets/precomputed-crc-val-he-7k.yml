@@ -1,0 +1,21 @@
+data:
+  dataset_type: PrecomputedEmbeddingDataset
+  train_npz_path: 
+    ./local_experiments/<model_code>/crc-val-he-7k/embeddings_train.npz
+  test_npz_path: 
+    ./local_experiments/<model_code>/crc-val-he-7k/embeddings_test.npz
+  batch_size_train: 32
+  batch_size_eval: 64
+  num_workers: 0
+  shuffle_train: true
+  shuffle_test: false
+  shuffle_seed: 2025
+  semantic_attributes: true
+  class_mapping: {ADI: 0, BACK: 1, DEB: 2, LYM: 3, MUC: 4, MUS: 5, NORM: 6, STR: 
+      7, TUM: 8}
+transform:
+  train: {to_tensor: true}
+  test: {to_tensor: true}
+model:
+  num_classes: 9
+  encoder_dim: 137 # 128 + num_classes

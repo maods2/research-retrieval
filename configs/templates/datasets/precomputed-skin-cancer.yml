@@ -1,0 +1,20 @@
+data:
+  dataset_type: PrecomputedEmbeddingDataset
+  train_npz_path: 
+    ./local_experiments/<model_code>/skin-cancer/embeddings_train.npz
+  test_npz_path: 
+    ./local_experiments/<model_code>/skin-cancer/embeddings_test.npz
+  batch_size_train: 32
+  batch_size_eval: 64
+  num_workers: 0
+  shuffle_train: true
+  shuffle_test: false
+  shuffle_seed: 2025
+  semantic_attributes: true
+  class_mapping: {akiec: 0, bcc: 1, bkl: 2, df: 3, mel: 4, nv: 5, vasc: 6}
+transform:
+  train: {to_tensor: true}
+  test: {to_tensor: true}
+model: 
+  num_classes: 7
+  encoder_dim: 135 # 128

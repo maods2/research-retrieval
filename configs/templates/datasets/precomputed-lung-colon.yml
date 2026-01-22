@@ -1,0 +1,19 @@
+data:
+  dataset_type: PrecomputedEmbeddingDataset
+  train_npz_path: 
+    ./local_experiments/<model_code>/lung-colon/embeddings_train.npz
+  test_npz_path: ./local_experiments/<model_code>/lung-colon/embeddings_test.npz
+  batch_size_train: 32
+  batch_size_eval: 64
+  num_workers: 0
+  shuffle_train: true
+  shuffle_test: false
+  shuffle_seed: 2025
+  semantic_attributes: true
+  class_mapping: {colon_aca: 0, colon_n: 1, lung_aca: 2, lung_n: 3, lung_scc: 4}
+transform:
+  train: {to_tensor: true}
+  test: {to_tensor: true}
+model: 
+  num_classes: 5
+  encoder_dim: 133 # 128 + num_classes

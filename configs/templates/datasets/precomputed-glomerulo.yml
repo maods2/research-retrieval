@@ -1,7 +1,7 @@
 data:
   dataset_type: PrecomputedEmbeddingDataset
-  train_npz_path: ./local_experiments/<model_code>/glomerulus/embeddings_train.npz
-  test_npz_path: ./local_experiments/<model_code>/glomerulus/embeddings_test.npz
+  train_npz_path: ./local_experiments/<model_code>/glomerulo/embeddings_train.npz
+  test_npz_path: ./local_experiments/<model_code>/glomerulo/embeddings_test.npz
   class_mapping: {Crescent: 0, Hypercelularidade: 1, Membranous: 2, Normal: 3, Podocitopatia: 4, Sclerosis: 5}
   batch_size_train: 32
   batch_size_eval: 64
@@ -50,3 +50,4 @@ transform:
 
 model:
   num_classes: 6
+  encoder_dim: 134 # 128 + num_classes
