@@ -4,6 +4,8 @@ from copy import deepcopy
 from itertools import product
 from ruamel.yaml import YAML
 
+ATT_METRIC = True # false is SEB
+
 def load_yaml(path):
     with open(path, 'r') as f:
         return yaml.safe_load(f)
@@ -51,7 +53,7 @@ def generate(experiments):
         
         base_path = Path(f'configs/templates/general/{base_config}.yml')
         data_path = Path(f'configs/templates/datasets/{dataset_template}.yml')
-        out_dir = Path(f'test_configs/att-metric/{dataset_name}')
+        out_dir = Path(f'test_configs/{"att_metric" if ATT_METRIC else "seb"}/{dataset_name}')
         out_dir.mkdir(parents=True, exist_ok=True)
         
         model_path = Path(f'configs/templates/models/{model_template}.yml')
@@ -98,19 +100,21 @@ def main():
 
     ]
 
-    models = [
+    # =========  Semantic Embedding Builder  ======== 
+    models_seb = [
         # model_code        model_name       model_templates
-        # =========  Semantic Embedding Builder  ======== 
-        #("uni_fsl",             "uni",           "03-seb-fsl"),
-        #("uni2h_fsl",           "uni2h",         "03-seb-fsl"),
-        #("virchow_fsl",         "virchow",       "03-seb-fsl"),
-        #("virchow_v2_fsl",      "virchow_v2",    "03-seb-fsl"),
-        #("phikon_fsl",          "phikon",        "03-seb-fsl"),
-        #("phikon_v2_fsl",       "phikon_v2",     "03-seb-fsl"),
-        #("dino_fsl",            "dino_v1_b16",   "03-seb-fsl"),
-        #("dinov2_fsl",          "dino_v2_b",     "03-seb-fsl"),
-        #("dinov3_fsl",         "dinov3",        "03-seb-fsl"),
-        # ==============  Attention Metric  =============
+        ("uni_fsl",             "uni",           "03-seb-fsl"),
+        ("uni2h_fsl",           "uni2h",         "03-seb-fsl"),
+        ("virchow_fsl",         "virchow",       "03-seb-fsl"),
+        ("virchow_v2_fsl",      "virchow_v2",    "03-seb-fsl"),
+        ("phikon_fsl",          "phikon",        "03-seb-fsl"),
+        ("phikon_v2_fsl",       "phikon_v2",     "03-seb-fsl"),
+        ("dino_fsl",            "dino_v1_b16",   "03-seb-fsl"),
+        ("dinov2_fsl",          "dino_v2_b",     "03-seb-fsl"),
+        ("dinov3_fsl",          "dinov3",        "03-seb-fsl"),
+    ]
+    # ==============  Attention Metric  =============
+    models_att_metric = [
         ("uni",             "uni",           "04-att-metric"),
         ("uni2h",           "uni2h",         "04-att-metric"),
         ("virchow",         "virchow",       "04-att-metric"),
@@ -121,16 +125,18 @@ def main():
         ("dino_v2_b",       "dino_v2_b",     "04-att-metric"),
     ]
 
-    datasets = [
+    # =========  Semantic Embedding Builder  ======== 
+    datasets_seb = [
     #   dataset_name   dataset_template
-        # =========  Semantic Embedding Builder  ======== 
-        #("glomerulo", "glomerulo-fsl"),
-        #("bracs", "bracs-fsl"),
-        #("crc-val-he-7k", "crc-val-he-7k-fsl"),
-        #("lung-colon", "lung-colon-fsl"),
-        #("skin-cancer", "skin-cancer-fsl"),
-        #("ubc-ovarian-cancer", "ubc-ovarian-cancer-fsl"),
-        # ==============  Attention Metric  =============
+        ("glomerulo", "glomerulo-fsl"),
+        ("bracs", "bracs-fsl"),
+        ("crc-val-he-7k", "crc-val-he-7k-fsl"),
+        ("lung-colon", "lung-colon-fsl"),
+        ("skin-cancer", "skin-cancer-fsl"),
+        ("ubc-ovarian-cancer", "ubc-ovarian-cancer-fsl"),
+    ]
+    # ==============  Attention Metric  =============
+    datasets_att_metric = [
         ("glomerulo",          "precomputed-glomerulo"),
         ("bracs",              "precomputed-bracs"),
         ("crc-val-he-7k",      "precomputed-crc-val-he-7k"),
@@ -139,15 +145,22 @@ def main():
         ("ubc-ovarian-cancer", "precomputed-ubc-ovarian-cancer"),
     ]
     
-    pipelines =  [
-        # =========  Semantic Embedding Builder  ======== 
-        #"fsl_trainer"
-        # ==============  Attention Metric  =============
+    # =========  Semantic Embedding Builder  ======== 
+    pipeline_seb =  [
+        "fsl_trainer"
+    ]
+
+    # ==============  Attention Metric  =============
+    pipeline_att_metric = [
         "terumo_trainer"
     ]
 
     
-    for exp in product(models, datasets, pipelines):
+    for exp in product(
+        models_att_metric   if ATT_METRIC else models_seb, 
+        datasets_att_metric if ATT_METRIC else datasets_seb, 
+        pipeline_att_metric if ATT_METRIC else pipeline_seb
+    ):
         model_name, model_code, model_template = exp[0]
         dataset_name, dataset_template = exp[1]
         pipeline = exp[2]

@@ -11,24 +11,22 @@ class ExperimentCompiler:
         self.base_dir = Path(base_dir)
         self.metric_files = {
             "map": {
-                #"compiled": "map_at_k_results.json",
-                #"details": "map_at_k_query_details.json"
-                "compiled": "train_metrics.json",
-                "details": "config.json"
+                "compiled": "map_at_k_results.json",
+                "details": "map_at_k_query_details.json"
             }
         }
 
     def _parse_experiment_path(self, path: Path) -> Optional[Dict]:
         """Parse experiment path into components.
 
-        Expected format: <dataset>/<model>/<run_timestamp>
-        Example: bracs/liu_dsh/liu_dsh_bracs_2025-10-20_17-14-16
+        Expected format: <model>/<dataset>/<run_timestamp>
+        Example: dino_v1_b16/bracs/2_branch_mlp_dino_v1_b16_2026-01-21_21-26-49
         """
         parts = path.parts[-3:]  # Get last 3 parts
         if len(parts) != 3:
             return None
 
-        dataset, model, run = parts
+        model, dataset, run = parts
 
         # Parse timestamp from run folder
         timestamp_pattern = re.compile(r".*_(\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2})$")

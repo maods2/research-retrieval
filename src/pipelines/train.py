@@ -15,8 +15,8 @@ def setup_components(config) -> TrainingContext:
     """Initializes and returns all major components based on the config."""
     train_loader, eval_loader = get_dataloader(
         config,
-        get_transforms(config['transform'].get('train'), config.get('model')),
-        get_transforms(config['transform'].get('test'), config.get('model')),
+        get_transforms(config['transform'].get('train')),
+        get_transforms(config['transform'].get('test')),
     )
     model = get_model(config['model'], hf_token=get_hf_token())
 

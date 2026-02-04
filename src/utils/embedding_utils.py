@@ -51,7 +51,7 @@ def create_embeddings(
 
         if isinstance(embedding, tuple):
             # For multi-branch models: concatenate all branch outputs along feature dimension
-            embedding = torch.cat(embedding, dim=0)
+            embedding = torch.cat(embedding, dim=1)
         
         embeddings.append(embedding.cpu().numpy())
 
@@ -222,7 +222,7 @@ def create_embeddings_dict(
 
     # set transforms to test transforms for eval
     train_loader.dataset.set_transform(
-        get_transforms(config['transform'].get('test', None), config.get('model'))
+        get_transforms(config['transform'].get('test', None))
     )
 
     logger.info('Creating embeddings database from training data...')
@@ -250,7 +250,7 @@ def create_embeddings_dict(
 
     # Concatenate embeddings with prototype distances
     prototypes = None
-    if config['data'].get('semantic_attributes', False):
+    if config['data'].get('semantic_attributes', True):
         logger.info('Computing prototypes and concatenating distances...')
         distance_metric = config['evaluation'].get(
             'prototype_distance_metric', 'euclidean'
@@ -283,22 +283,63 @@ def create_embeddings_dict(
         )
 
     # Use the generalist function to get attributes
+    # Build class mapping (label -> class_name) from train dataset
+    class_mapping_train = get_dataset_attribute(
+        train_loader.dataset, 'class_mapping'
+    )
+    class_mapping = invert_dict(class_mapping_train)
+
+    # Prefer per-sample labels_str when available; otherwise build from query_labels
+    raw_labels_str = get_dataset_attribute(
+        test_loader.dataset, 'labels_str'
+    )
+    if isinstance(raw_labels_str, (list, np.ndarray)) and len(raw_labels_str) == query_embeddings.shape[0]:
+        query_classes = list(raw_labels_str)
+    else:
+        logger.warning(
+            'test dataset labels_str appears to contain only class keys; '
+            'building per-sample query_classes from query_labels'
+        )
+        query_classes = [
+            class_mapping.get(int(l), str(int(l))) for l in query_labels
+        ]
+
     embeddings = {
         'db_embeddings': db_embeddings,
         'db_labels': db_labels,
         'db_path': get_dataset_attribute(train_loader.dataset, 'image_paths'),
         'query_embeddings': query_embeddings,
         'query_labels': query_labels,
-        'query_classes': get_dataset_attribute(
-            test_loader.dataset, 'labels_str'
-        ),
-        'query_paths': get_dataset_attribute(
-            test_loader.dataset, 'image_paths'
-        ),
-        'class_mapping': invert_dict(
-            get_dataset_attribute(train_loader.dataset, 'class_mapping')
-        ),
+        'query_classes': query_classes,
+        'query_paths': get_dataset_attribute(test_loader.dataset, 'image_paths'),
+        'class_mapping': class_mapping,
     }
+
+    # --- OLD CODE (kept commented for reference) ---
+    # embeddings = {
+    #     'db_embeddings': db_embeddings,
+    #     'db_labels': db_labels,
+    #     'db_path': get_dataset_attribute(train_loader.dataset, 'image_paths'),
+    #     'query_embeddings': query_embeddings,
+    #     'query_labels': query_labels,
+    #     'query_classes': get_dataset_attribute(
+    #         test_loader.dataset, 'labels_str'
+    #     ),
+    #     'query_paths': get_dataset_attribute(
+    #         test_loader.dataset, 'image_paths'
+    #     ),
+    #     'class_mapping': invert_dict(
+    #         get_dataset_attribute(train_loader.dataset, 'class_mapping')
+    #     ),
+    # }
+
+    # Safety check and log if something is still wrong
+    if len(embeddings['query_classes']) != query_embeddings.shape[0]:
+        logger.error(
+            'query_classes length mismatch: %d vs %d',
+            len(embeddings['query_classes']),
+            query_embeddings.shape[0],
+        )
     
     # Store prototypes if computed
     if prototypes is not None:

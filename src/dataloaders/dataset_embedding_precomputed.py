@@ -19,6 +19,7 @@ class PrecomputedEmbeddingDataset(Dataset):
         self.labels = labels
         self.image_paths = paths
         self.class_mapping = class_mapping
+        self.labels_str = list(class_mapping.keys()) if class_mapping else None
 
     @classmethod
     def from_npz(

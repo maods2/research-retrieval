@@ -104,7 +104,7 @@ class WrappedFsl(nn.Module):
 
     def forward(self, x):
         with torch.no_grad():
-            x = self.backbone(x)
+            x = self.backbone(x.float())
 
         x = x.clone() # required by autograd.
         x = self.projection(x)

@@ -13,8 +13,7 @@ def load_json(path):
 def extract_metric_series(model_metrics, metric_name="map_compiled"):
     """Extract (k, value) pairs for a given metric from a model's metrics."""
     data = model_metrics.get(metric_name, {})
-    print("data:",data)
-    pattern = re.compile(rf"{metric_name.replace('_compiled', '')}At(\d+)", re.IGNORECASE)
+    pattern = re.compile(r"(\d+)")
     ks, values = [], []
     for k_str, v in data.items():
         m = pattern.match(k_str)
@@ -22,13 +21,6 @@ def extract_metric_series(model_metrics, metric_name="map_compiled"):
         if m:
             ks.append(int(m.group(1)))
             values.append(float(v))
-
-        try:
-            ks.append(int(k_str))
-        except ValueError:
-            continue
-
-        values.append(float(v))
     if ks:
         ks, values = zip(*sorted(zip(ks, values)))
     return np.array(ks), np.array(values)
@@ -50,7 +42,7 @@ def style_for_model(model_name):
         "supcon": {"color": "#0b4c8c", "linestyle": "--"},
         "liu_dsh": {"color": "#1a75ff", "linestyle": ":"},
         "autoencoder": {"color": "#471be8", "linestyle": "-."},
-        "triplet": {"color": "#fc6c6e", "marker": "8"},
+        "triplet": {"color": "#fc6c6e", "marker": "-."},
         "virchow": {"color": "#3c6c63", "marker": "8"},
     }
     for key, style in styles.items():
@@ -80,11 +72,11 @@ def plot_metric_comparison_from_json(
     Compatible with new JSON structure.
     """
     results = load_json(json_path)
-    models = {x:y for x,y in results.items() if x != "timestamp"}
+    dataset_data = results.get(dataset_name)
+    if dataset_data is None:
+        raise ValueError(f"Dataset '{dataset_name}' not found in JSON.")
+    models = dataset_data.get("models", {})
     print("Models:", models.keys())
-    #dataset = results.get(dataset_name)
-    #if dataset is None:
-    #    raise ValueError(f"Dataset '{dataset_name}' not found in JSON.")
 
     plt.figure(figsize=(10, 6))
     plt.rcParams.update({
@@ -96,13 +88,15 @@ def plot_metric_comparison_from_json(
     })
 
     handles, labels = [], []
+    all_ks = []
 
-    for model_name, info in models.items():
-        print("info:", info["models"][dataset_name]["metrics"].keys())
-        metrics = info["models"][dataset_name]["metrics"]
+    for model_name, model_info in models.items():
+        metrics = model_info["metrics"]
         ks, values = extract_metric_series(metrics, metric_name=metric_key)
         if len(ks) == 0:
             continue
+
+        all_ks.extend(ks)
 
         style = style_for_model(model_name)
         line, = plt.plot(
@@ -121,11 +115,13 @@ def plot_metric_comparison_from_json(
     plt.xlabel("k")
     plt.ylabel(metric_key.replace("_compiled", "").upper())
     plt.ylim(0, 1)
-    plt.xlim(0, max(ks) + 1)
+    if all_ks:
+        plt.xlim(0, max(all_ks) + 1)
     plt.grid(True, linestyle="--", alpha=0.4)
     if title:
         plt.title(title, fontsize=14, pad=10)
-    plt.legend(loc=legend_location, frameon=False, fontsize="small")
+    if handles:
+        plt.legend(loc=legend_location, frameon=False, fontsize="small")
 
     if save_as:
         plt.tight_layout()
